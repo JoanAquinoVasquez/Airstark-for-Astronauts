@@ -14,13 +14,20 @@ Los datos del formulario y los CSV se guardan solo en el navegador de este dispo
 
 ## Interfaz del agente por webhook
 
-El panel **AIRSTARK Copilot** permite configurar una URL de webhook y conversar con un agente. La interfaz envía únicamente la pregunta como JSON mediante `POST`:
+El panel **AIRSTARK Copilot** permite configurar una URL de webhook y conversar con un agente. La interfaz envía la pregunta y un contexto de salud acotado mediante `POST`:
 
 ```json
-{"question":"¿Qué indicadores puedo consultar?"}
+{
+  "question": "¿Qué indicadores puedo consultar?",
+  "astronautData": {
+    "latest": { "heartRateBpm": 72, "bmi": 22.4, "stressLevel": "Bajo", "isMock": true },
+    "recentRecords": [],
+    "containsMockData": true
+  }
+}
 ```
 
-La respuesta puede ser texto plano o JSON con un campo `answer`, `response`, `output`, `message`, `reply` o `text`. La interfaz no añade datos de salud ni historial a la solicitud. El endpoint debe aceptar solicitudes `POST` desde el dominio de Vercel y habilitar CORS para `Content-Type`.
+`astronautData.latest` contiene la medición más reciente y `recentRecords` hasta siete registros. Cada registro incluye frecuencia cardíaca, IMC, estrés, presión, glucosa, peso, estatura, diabetes, fecha y origen; los datos de demostración incluyen `isMock: true`. La respuesta puede ser texto plano o JSON con un campo `answer`, `response`, `output`, `message`, `reply` o `text`. El endpoint debe aceptar solicitudes `POST` desde el dominio de Vercel y habilitar CORS para `Content-Type`.
 
 ## Flujo para el siguiente módulo
 
