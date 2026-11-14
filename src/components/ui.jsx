@@ -23,6 +23,12 @@ export function ModuleState({ children = 'PENDIENTE DE INTEGRACIÓN' }) {
   return <span className="module-state"><i />{children}</span>;
 }
 
+export function VoiceButton({ listening, onClick, label }) {
+  const { language } = useLanguage();
+  const text = copy[language].voice;
+  return <button className={`voice-button${listening ? ' listening' : ''}`} type="button" onClick={onClick} aria-label={listening ? text.stop : label || text.dictate} title={listening ? text.stop : label || text.dictate}><span aria-hidden="true">{listening ? '■' : <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4m-4 0h8"/></svg>}</span></button>;
+}
+
 export function QuickLink({ to, icon, title, description }) {
   return <Link className="quick-link-card" to={to}><span className="quick-link-icon">{icon}</span><span className="quick-link-copy"><strong>{title}</strong><small>{description}</small></span><span className="quick-link-arrow">→</span></Link>;
 }

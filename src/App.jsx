@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { copy, LanguageContext } from './i18n.jsx';
 import brandLogo from '../assets/airstark-logo.jpg';
 import Dashboard from './pages/Dashboard.jsx';
@@ -28,6 +28,9 @@ function AppShell() {
   const current = navigation.find((item) => item.end
     ? location.pathname === item.to
     : location.pathname.startsWith(item.to)) || navigation[0];
+  useEffect(() => {
+    if (location.hash === '#notifications-panel') requestAnimationFrame(() => document.getElementById('notifications-panel')?.scrollIntoView({ behavior: 'smooth' }));
+  }, [location.hash, location.pathname]);
 
   return (
     <div className="app-shell">
@@ -53,7 +56,7 @@ function AppShell() {
         <header className="topbar">
           <button className="menu-button" aria-label={text.app.menu} onClick={() => setMenuOpen((open) => !open)}>☰</button>
           <div className="breadcrumb">AIRSTARK <span>/</span> <b>{text.app.nav[current.label]}</b></div>
-          <div className="top-actions"><div className="language-switch" role="group" aria-label="Choose language / Elegir idioma"><button type="button" className={language === 'en' ? 'active' : ''} aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button><button type="button" className={language === 'es' ? 'active' : ''} aria-pressed={language === 'es'} onClick={() => setLanguage('es')}>ES</button></div><span className="mission-pill"><i /> {text.app.missionDemo}</span><a className="space-apps-mark" href="https://www.spaceappschallenge.org/" target="_blank" rel="noreferrer" aria-label="NASA Space Apps Challenge"><img src="https://assets.spaceappschallenge.org/media/images/Space_Apps_Logo_Color_and_White.width-440.jpegquality-60.png" alt="NASA Space Apps Challenge" /></a><span className="top-avatar">AC</span></div>
+          <div className="top-actions"><Link className="notifications-shortcut" to="/#notifications-panel" aria-label={language === 'en' ? 'Notifications' : 'Notificaciones'} title={language === 'en' ? 'Notifications' : 'Notificaciones'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg><i /></Link><div className="language-switch" role="group" aria-label="Choose language / Elegir idioma"><button type="button" className={language === 'en' ? 'active' : ''} aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button><button type="button" className={language === 'es' ? 'active' : ''} aria-pressed={language === 'es'} onClick={() => setLanguage('es')}>ES</button></div><span className="mission-pill"><i /> {text.app.missionDemo}</span><a className="space-apps-mark" href="https://www.spaceappschallenge.org/" target="_blank" rel="noreferrer" aria-label="NASA Space Apps Challenge"><img src="https://assets.spaceappschallenge.org/media/images/Space_Apps_Logo_Color_and_White.width-440.jpegquality-60.png" alt="NASA Space Apps Challenge" /></a><span className="top-avatar">AC</span></div>
         </header>
         <div className="route-content" key={location.pathname}>
           <Routes>

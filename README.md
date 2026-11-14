@@ -19,8 +19,17 @@ Para compilar para Vercel: `npm run build`.
 - Cálculo del IMC a partir del peso y estatura ingresados.
 - Historial en `localStorage` del navegador y exportación de los registros introducidos como CSV.
 - Navegación en ventanas separadas: resumen, monitor en vivo, gemelo digital 3D, datos del reloj, registro, historial y Copilot.
+- Interfaz bilingüe EN/ES, con inglés como idioma inicial y preferencia guardada en el navegador.
+- Dictado por voz en los campos del check-in y en Copilot; las respuestas del agente se pueden escuchar con síntesis de voz.
+- Panel de actividad y notificaciones como punto de integración para alertas del agente.
 
 Los datos del formulario y los CSV se guardan solo en el navegador de este dispositivo; la demo no transmite ni sincroniza información con un servidor. El historial de demostración es fijo y no es un registro clínico.
+
+## Supabase (preparación)
+
+`supabase/schema.sql` crea tablas para registros de salud y notificaciones con Row Level Security ligado al usuario autenticado. El proyecto todavía no sincroniza datos con Supabase: se requiere crear el proyecto, habilitar autenticación y configurar el cliente web con la URL y la clave `anon` pública. Nunca exponer una clave `service_role` en el navegador.
+
+El reconocimiento de voz usa las APIs disponibles en el navegador. Algunos navegadores requieren conexión de red para transcribir; para uso real durante una misión se necesitaría un motor de voz que funcione sin conexión.
 
 ## Interfaz del agente por webhook
 
