@@ -25,6 +25,7 @@
         <a class="nav-link" href="#indicadores"><span>⌁</span> Indicadores</a>
         <a class="nav-link" href="#registro"><span>＋</span> Nuevo registro</a>
         <a class="nav-link" href="#historial"><span>◷</span> Historial</a>
+        <a class="nav-link" href="#asistente"><span>✧</span> Asistente IA</a>
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="mission-card"><span class="live-dot"></span><div><small>ESTADO DE MISIÓN</small><strong>Simulación activa</strong></div><span class="mission-orbit">✳</span></div>
@@ -67,6 +68,15 @@
           <div class="form-footer"><span class="privacy-note"><span>▣</span> Tus datos se guardan localmente en este dispositivo.</span><button class="submit-button" type="submit">Guardar registro <span>→</span></button></div>
           <div id="formMessage" class="form-message" role="status" aria-live="polite"></div>
         </form>
+      </section>
+
+      <section class="panel assistant-panel" id="asistente">
+        <div class="assistant-heading"><div class="assistant-title"><span class="assistant-orb">✧</span><div><span class="section-kicker">ASISTENTE DE MISIÓN</span><h2>AIRSTARK Copilot</h2><p>Envía una pregunta al agente conectado por webhook.</p></div></div><span class="webhook-status" id="webhookStatus"><i></i><span>WEBHOOK SIN CONFIGURAR</span></span></div>
+        <details class="webhook-config" id="webhookConfig"><summary><span>⚙</span> Configurar conexión webhook <span class="config-chevron">⌄</span></summary><div class="webhook-config-body"><label for="webhookUrl">URL del webhook</label><div class="webhook-url-row"><input id="webhookUrl" type="url" inputmode="url" placeholder="https://tu-servidor.com/webhook/airstark" autocomplete="url" /><button class="save-webhook-button" id="saveWebhookButton" type="button">Guardar URL</button></div><p>La URL se guarda solo en este navegador. La petición enviará únicamente <code>{ "question": "..." }</code>. Tu endpoint debe permitir solicitudes CORS desde este sitio.</p></div></details>
+        <div class="chat-window" id="chatWindow" role="log" aria-live="polite" aria-label="Conversación con AIRSTARK Copilot"><div class="chat-welcome"><span class="chat-avatar">✧</span><div class="chat-bubble assistant-bubble"><strong>Hola, tripulante.</strong><p>Cuando configures el webhook, puedes hacerme una pregunta y la enviaré al agente para que la procese.</p></div></div></div>
+        <div class="suggested-questions"><span>PRUEBA CON</span><button type="button" data-question="¿Qué indicadores de salud puedo consultar?">Indicadores disponibles</button><button type="button" data-question="¿Cómo funciona el registro de salud?">Cómo funciona el registro</button></div>
+        <form class="chat-composer" id="chatForm"><label class="sr-only" for="chatQuestion">Escribe tu pregunta para el agente</label><textarea id="chatQuestion" rows="1" maxlength="2000" placeholder="Escribe tu pregunta para el agente…" required></textarea><button class="send-button" id="sendQuestionButton" type="submit" aria-label="Enviar pregunta"><span>Enviar</span><b>↑</b></button></form>
+        <div class="chat-footnote"><span>↗</span> Se enviará solo el texto de tu pregunta. El agente responderá mediante el webhook.</div>
       </section>
 
       <section class="panel history-panel" id="historial"><div class="panel-heading history-heading"><div><span class="section-kicker">ACTIVIDAD RECIENTE</span><h2>Historial de mediciones</h2></div><button class="export-button" id="exportButton">↓ <span>Exportar CSV</span></button></div><div class="table-scroll"><table><thead><tr><th>FECHA / HORA</th><th>RITMO CARDÍACO</th><th>PRESIÓN ARTERIAL</th><th>GLUCOSA</th><th>IMC</th><th>ESTRÉS</th></tr></thead><tbody id="historyBody"></tbody></table></div><div class="empty-history" id="emptyHistory" hidden>Todavía no hay registros guardados. Completa tu check-in para comenzar.</div></section>
