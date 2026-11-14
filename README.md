@@ -5,7 +5,7 @@ Prototipo de monitoreo para la hackatón NASA Space Apps. La interfaz funciona c
 ## Incluye
 
 - Panel adaptable a móvil con valores de demostración claramente identificados.
-- Importación local de archivos CSV con columnas de frecuencia cardíaca, IMC y estrés. Se reconocen encabezados como `heart_rate`, `heart_rate_bpm`, `frecuencia_cardiaca`, `bmi`, `imc`, `stress` y `nivel_estres`.
+- Importación local de archivos CSV con columnas de frecuencia cardíaca, IMC y estrés. Se reconocen encabezados como `heart_rate`, `heart_rate_bpm`, `frecuencia_cardiaca`, `bpm`, `timestamp_iso`, `bmi`, `imc`, `stress` y `nivel_estres`. Las filas con `0 bpm` se omiten porque representan lecturas no válidas en el CSV de muestra del reloj.
 - Formulario para frecuencia cardíaca, presión arterial, glucosa, peso, estatura, tipo de diabetes, estrés y nota opcional.
 - Cálculo del IMC a partir del peso y estatura ingresados.
 - Historial en `localStorage` del navegador y exportación de los registros introducidos como CSV.
