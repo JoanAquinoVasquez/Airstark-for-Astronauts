@@ -31,8 +31,8 @@ export default function Dashboard() {
   const heartRate = latest?.heartRate ?? '—';
   const bmi = latest?.bmi ? Number(latest.bmi).toFixed(1) : '—';
   const normalizedStress = stressLabel(latest?.stress);
-  const stress = language === 'en' ? ({ Bajo: 'Low', Moderado: 'Moderate', Alto: 'High' }[normalizedStress] || normalizedStress) : normalizedStress;
-  const stressLevel = stress === 'Alto' ? 3 : stress === 'Moderado' ? 2 : 1;
+  const stress = language === 'en' ? ({ Bajo: 'Low', Moderado: 'Moderate', Alto: 'Highly stressed' }[normalizedStress] || normalizedStress) : normalizedStress;
+  const stressLevel = normalizedStress === 'Alto' ? 3 : normalizedStress === 'Moderado' ? 2 : 1;
 
   return <>
     <PageHeading eyebrow={text.eyebrow} title={<>{text.title} <span>{text.accent}</span></>} description={text.description} action={<div className="date-card"><span className="date-icon">◷</span><div><small>{text.date}</small><strong>{formatDate(new Date(), { year: 'numeric' }, language === 'en' ? 'en-US' : 'es-PE').toUpperCase()}</strong></div></div>} />

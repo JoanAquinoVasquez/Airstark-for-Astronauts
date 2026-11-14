@@ -34,7 +34,7 @@ export function formatDate(value, options = {}, locale = 'es-PE') {
 
 export function stressLabel(value) {
   const text = String(value || '').toLowerCase();
-  if (/alto|high|severo/.test(text)) return 'Alto';
+  if (/alto|altamente|high|severo/.test(text)) return 'Alto';
   if (/regular|moderado|medium|moderate/.test(text)) return 'Moderado';
   if (/bajo|low|leve|mild/.test(text)) return 'Bajo';
   return value || '—';
