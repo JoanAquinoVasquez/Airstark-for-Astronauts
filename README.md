@@ -18,7 +18,9 @@ El panel **AIRSTARK Copilot** permite configurar una URL de webhook y conversar 
 
 ```json
 {
-  "question": "¿Qué indicadores puedo consultar?",
+  "action": "sendMessage",
+  "sessionId": "airstark-session-id",
+  "chatInput": "¿Qué indicadores puedo consultar?\\n\\nContexto de salud AIRSTARK (JSON): ...",
   "astronautData": {
     "latest": { "heartRateBpm": 72, "bmi": 22.4, "stressLevel": "Bajo", "isMock": true },
     "recentRecords": [],
@@ -27,7 +29,7 @@ El panel **AIRSTARK Copilot** permite configurar una URL de webhook y conversar 
 }
 ```
 
-`astronautData.latest` contiene la medición más reciente y `recentRecords` hasta siete registros. Cada registro incluye frecuencia cardíaca, IMC, estrés, presión, glucosa, peso, estatura, diabetes, fecha y origen; los datos de demostración incluyen `isMock: true`. La respuesta puede ser texto plano o JSON con un campo `answer`, `response`, `output`, `message`, `reply` o `text`. El endpoint debe aceptar solicitudes `POST` desde el dominio de Vercel y habilitar CORS para `Content-Type`.
+El contrato usa los campos de un chat n8n: `action`, `sessionId` y `chatInput`. El texto `chatInput` incluye la pregunta y el contexto JSON para que el agente lo reciba como parte de su mensaje; `astronautData` también se envía como campo estructurado adicional. `astronautData.latest` contiene la medición más reciente y `recentRecords` hasta siete registros. Cada registro incluye frecuencia cardíaca, IMC, estrés, presión, glucosa, peso, estatura, diabetes, fecha y origen; los datos de demostración incluyen `isMock: true`. La respuesta puede ser texto plano o JSON con un campo `answer`, `response`, `output`, `message`, `reply` o `text`. El endpoint debe aceptar solicitudes `POST` desde el dominio de Vercel y habilitar CORS para `Content-Type`.
 
 ## Flujo para el siguiente módulo
 
