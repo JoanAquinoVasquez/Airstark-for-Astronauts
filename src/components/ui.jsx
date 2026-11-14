@@ -29,6 +29,10 @@ export function VoiceButton({ listening, onClick, label }) {
   return <button className={`voice-button${listening ? ' listening' : ''}`} type="button" onClick={onClick} aria-label={listening ? text.stop : label || text.dictate} title={listening ? text.stop : label || text.dictate}><span aria-hidden="true">{listening ? '■' : <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4m-4 0h8"/></svg>}</span></button>;
 }
 
+export function AstronautAvatar({ className = '', label = 'Astronaut avatar' }) {
+  return <svg className={className} viewBox="0 0 48 48" role="img" aria-label={label}><circle cx="24" cy="15" r="10"/><path d="M15 14c2-5 6-7 9-7s7 2 9 7M19 14h10M18 28l-8 5-3 9m23-14 8 5 3 9M17 28c1 6 3 10 7 13 4-3 6-7 7-13M17 29h14M20 34h8"/><path d="m19 25-5 2m15-2 5 2"/></svg>;
+}
+
 export function QuickLink({ to, icon, title, description }) {
   return <Link className="quick-link-card" to={to}><span className="quick-link-icon">{icon}</span><span className="quick-link-copy"><strong>{title}</strong><small>{description}</small></span><span className="quick-link-arrow">→</span></Link>;
 }

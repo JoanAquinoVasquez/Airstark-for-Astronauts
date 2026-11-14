@@ -1,9 +1,36 @@
 -- AIRSTARK data model for Supabase.
 -- Run this in the Supabase SQL Editor after creating a project and enabling Auth.
 
+create table if not exists public.astronaut_profiles (
+  user_id uuid primary key default auth.uid() references auth.users(id) on delete cascade,
+  full_name text not null,
+  crew_id text not null unique,
+  mission text not null,
+  crew_role text,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.astronaut_profiles enable row level security;
+
+drop policy if exists "Users can read their own astronaut profile" on public.astronaut_profiles;
+create policy "Users can read their own astronaut profile"
+  on public.astronaut_profiles for select to authenticated
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can create their own astronaut profile" on public.astronaut_profiles;
+create policy "Users can create their own astronaut profile"
+  on public.astronaut_profiles for insert to authenticated
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own astronaut profile" on public.astronaut_profiles;
+create policy "Users can update their own astronaut profile"
+  on public.astronaut_profiles for update to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 create table if not exists public.health_records (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  astronaut_id text references public.astronaut_profiles(crew_id) on update cascade on delete set null,
   recorded_at timestamptz not null default now(),
   heart_rate_bpm numeric,
   blood_pressure_mmhg text,

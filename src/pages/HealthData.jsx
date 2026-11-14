@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { formatDate, getCurrentRecords, getSavedRecords, localizeStress, readSmartwatchCsv, saveRecords } from '../lib/health.js';
 import { PageHeading } from '../components/ui.jsx';
 import { copy, useLanguage } from '../i18n.jsx';
+import { getAstronautProfile } from '../lib/profile.js';
 
 export default function HealthData() {
   const { language } = useLanguage();
@@ -16,6 +17,8 @@ export default function HealthData() {
     setMessage(''); setError(false);
     try {
       const result = await readSmartwatchCsv(file);
+      const astronautId = getAstronautProfile().crewId;
+      result.records = result.records.map((record) => ({ ...record, astronautId }));
       const otherRecords = getSavedRecords().filter((record) => record.sourceFile !== file.name);
       saveRecords([...otherRecords, ...result.records]);
       setVersion((value) => value + 1);

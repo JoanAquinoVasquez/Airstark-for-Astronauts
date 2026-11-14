@@ -1,3 +1,5 @@
+import { getAstronautProfile } from './profile.js';
+
 export const HEALTH_STORAGE_KEY = 'airstark.healthRecords.v1';
 const CHAT_SESSION_STORAGE_KEY = 'airstark.agentSession.v1';
 export const AGENT_WEBHOOK = 'https://www.mrsoft-ai.com/webhook/a5fa83ae-77ad-4c15-b3bd-196acdea9960/chat';
@@ -110,6 +112,7 @@ export async function readSmartwatchCsv(file) {
 }
 
 export function getAstronautContext() {
+  const astronaut = getAstronautProfile();
   const records = getCurrentRecords().slice(0, 7).map((record) => ({
     recordedAt: record.date,
     heartRateBpm: record.heartRate ?? null,
@@ -123,7 +126,7 @@ export function getAstronautContext() {
     source: record.source || 'unknown',
     isMock: record.source === 'demo',
   }));
-  return { latest: records[0] || null, recentRecords: records, containsMockData: records.some((record) => record.isMock) };
+  return { astronaut, latest: records[0] || null, recentRecords: records, containsMockData: records.some((record) => record.isMock) };
 }
 
 function getChatSessionId() {

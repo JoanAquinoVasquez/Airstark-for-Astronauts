@@ -3,6 +3,7 @@ import { getSavedRecords, saveRecords } from '../lib/health.js';
 import { PageHeading, VoiceButton } from '../components/ui.jsx';
 import { copy, useLanguage } from '../i18n.jsx';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition.js';
+import { getAstronautProfile } from '../lib/profile.js';
 
 export default function HealthForm() {
   const { language } = useLanguage();
@@ -71,7 +72,7 @@ export default function HealthForm() {
     }
     const height = Number(data.get('height')) / 100;
     const record = {
-      date: new Date().toISOString(), heartRate: Number(data.get('heartRate')),
+      date: new Date().toISOString(), astronautId: getAstronautProfile().crewId, heartRate: Number(data.get('heartRate')),
       pressure: String(data.get('bloodPressure')).replace(/\s/g, ''), glucose: Number(data.get('glucose')),
       weight: Number(data.get('weight')), heightCm: Number(data.get('height')),
       bmi: Number((Number(data.get('weight')) / (height * height)).toFixed(1)),

@@ -14,6 +14,7 @@ Para compilar para Vercel: `npm run build`.
 ## Incluye
 
 - Panel adaptable a móvil con valores de demostración claramente identificados.
+- Perfil editable del astronauta con ID de tripulación y misión; ese ID se agrega a check-ins, CSV importados y al contexto del agente.
 - Importación local de archivos CSV con columnas de frecuencia cardíaca, IMC y estrés. Se reconocen encabezados como `heart_rate`, `heart_rate_bpm`, `frecuencia_cardiaca`, `bpm`, `timestamp_iso`, `bmi`, `imc`, `stress` y `nivel_estres`. Las filas con `0 bpm` se omiten porque representan lecturas no válidas en el CSV de muestra del reloj.
 - Formulario para frecuencia cardíaca, presión arterial, glucosa, peso, estatura, tipo de diabetes, estrés y nota opcional.
 - Cálculo del IMC a partir del peso y estatura ingresados.
@@ -23,7 +24,7 @@ Para compilar para Vercel: `npm run build`.
 - Dictado por voz en los campos del check-in y en Copilot; las respuestas del agente se pueden escuchar con síntesis de voz.
 - Panel de actividad y notificaciones como punto de integración para alertas del agente.
 
-Los datos del formulario y los CSV se guardan solo en el navegador de este dispositivo; la demo no transmite ni sincroniza información con un servidor. El historial de demostración es fijo y no es un registro clínico.
+El perfil, los datos del formulario y los CSV se guardan solo en el navegador de este dispositivo; la demo no transmite ni sincroniza información con un servidor. El historial de demostración es fijo y no es un registro clínico.
 
 ## Supabase (preparación)
 
