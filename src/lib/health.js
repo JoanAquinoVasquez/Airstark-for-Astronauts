@@ -27,16 +27,16 @@ export function getLatestRecord() {
   return getCurrentRecords()[0] || null;
 }
 
-export function formatDate(value, options = {}) {
+export function formatDate(value, options = {}, locale = 'es-PE') {
   if (!value) return '—';
-  return new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: 'short', ...options }).format(new Date(value)).replace('.', '');
+  return new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', ...options }).format(new Date(value)).replace('.', '');
 }
 
 export function stressLabel(value) {
   const text = String(value || '').toLowerCase();
   if (/alto|high|severo/.test(text)) return 'Alto';
-  if (/regular|moderado|medium/.test(text)) return 'Moderado';
-  if (/bajo|low|leve/.test(text)) return 'Bajo';
+  if (/regular|moderado|medium|moderate/.test(text)) return 'Moderado';
+  if (/bajo|low|leve|mild/.test(text)) return 'Bajo';
   return value || '—';
 }
 
@@ -141,21 +141,23 @@ function extractResponse(payload) {
   return String(payload ?? '');
 }
 
-export async function askAgent(question) {
+export async function askAgent(question, language = 'en') {
   const astronautData = getAstronautContext();
-  const chatInput = `${question}\n\nContexto de salud AIRSTARK (JSON; isMock=true identifica datos simulados):\n${JSON.stringify(astronautData)}`;
+  const answerLanguage = language === 'es' ? 'Spanish' : 'English';
+  const healthContextLabel = language === 'es' ? 'Contexto de salud AIRSTARK (JSON; isMock=true identifica datos simulados)' : 'AIRSTARK health context (JSON; isMock=true identifies simulated data)';
+  const chatInput = `Reply to the astronaut in ${answerLanguage}. ${question}\n\n${healthContextLabel}:\n${JSON.stringify(astronautData)}`;
   const chatUrl = new URL(AGENT_WEBHOOK);
   chatUrl.searchParams.set('action', 'sendMessage');
   const response = await fetch(chatUrl, {
     method: 'POST', mode: 'cors', credentials: 'omit',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'sendMessage', sessionId: getChatSessionId(), chatInput, question, astronautData }),
+    body: JSON.stringify({ action: 'sendMessage', sessionId: getChatSessionId(), chatInput, question, language, astronautData }),
   });
   const body = await response.text();
   if (!response.ok) throw new Error(`Webhook request failed: ${response.status}`);
   let payload = body;
   try { payload = body ? JSON.parse(body) : ''; } catch { /* plain-text response */ }
-  return extractResponse(payload) || 'El asistente respondió sin contenido.';
+  return extractResponse(payload) || (language === 'es' ? 'El asistente respondió sin contenido.' : 'The assistant returned an empty response.');
 }
 
 export function exportRecords(records) {
