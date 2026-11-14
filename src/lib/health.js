@@ -40,6 +40,12 @@ export function stressLabel(value) {
   return value || '—';
 }
 
+export function localizeStress(value, language = 'es') {
+  const normalized = stressLabel(value);
+  if (language === 'en') return ({ Bajo: 'Low', Moderado: 'Moderate', Alto: 'Highly stressed' }[normalized] || value || '—');
+  return ({ Bajo: 'Bajo', Moderado: 'Moderado', Alto: 'Altamente estresado' }[normalized] || value || '—');
+}
+
 function parseCSV(text) {
   const rows = [];
   let row = []; let cell = ''; let quoted = false;

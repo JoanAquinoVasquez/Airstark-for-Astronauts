@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { formatDate, getCurrentRecords, getSavedRecords, readSmartwatchCsv, saveRecords } from '../lib/health.js';
+import { formatDate, getCurrentRecords, getSavedRecords, localizeStress, readSmartwatchCsv, saveRecords } from '../lib/health.js';
 import { PageHeading } from '../components/ui.jsx';
 import { copy, useLanguage } from '../i18n.jsx';
 
@@ -40,6 +40,6 @@ export default function HealthData() {
       </article>
       <article className="panel data-summary-panel"><span className="section-kicker">{t.summary}</span><h2>{t.available}</h2><div className="data-summary-number">{getSavedRecords().length}<small>{t.own}</small></div><p>{t.saved}</p><div className="data-source-list"><span><i className="source-dot mock" /> {t.mockSource}</span><span><i className="source-dot csv" /> {t.csvSource}</span><span><i className="source-dot manual" /> {t.manualSource}</span></div></article>
     </section>
-    <section className="panel recent-readings-panel"><div className="panel-heading"><div><span className="section-kicker">{t.recent}</span><h2>{t.last}</h2></div></div><div className="table-scroll"><table><thead><tr><th>{t.datetime}</th><th>{t.heart}</th><th>{t.bmi}</th><th>{t.stress}</th><th>{t.source}</th></tr></thead><tbody>{records.slice(0, 8).map((record, index) => <tr key={`${record.date}-${index}`}><td>{formatDate(record.date, { hour: '2-digit', minute: '2-digit', hour12: false }, language === 'en' ? 'en-US' : 'es-PE')}</td><td>{record.heartRate ? `${record.heartRate} bpm` : '—'}</td><td>{record.bmi ?? '—'}</td><td>{record.stress ?? '—'}</td><td><span className={`source-pill ${record.source}`}>{record.source === 'demo' ? t.mock : record.source === 'csv' ? 'CSV' : t.manual}</span></td></tr>)}</tbody></table></div></section>
+    <section className="panel recent-readings-panel"><div className="panel-heading"><div><span className="section-kicker">{t.recent}</span><h2>{t.last}</h2></div></div><div className="table-scroll"><table><thead><tr><th>{t.datetime}</th><th>{t.heart}</th><th>{t.bmi}</th><th>{t.stress}</th><th>{t.source}</th></tr></thead><tbody>{records.slice(0, 8).map((record, index) => <tr key={`${record.date}-${index}`}><td>{formatDate(record.date, { hour: '2-digit', minute: '2-digit', hour12: false }, language === 'en' ? 'en-US' : 'es-PE')}</td><td>{record.heartRate ? `${record.heartRate} bpm` : '—'}</td><td>{record.bmi ?? '—'}</td><td>{localizeStress(record.stress, language)}</td><td><span className={`source-pill ${record.source}`}>{record.source === 'demo' ? t.mock : record.source === 'csv' ? 'CSV' : t.manual}</span></td></tr>)}</tbody></table></div></section>
   </>;
 }
