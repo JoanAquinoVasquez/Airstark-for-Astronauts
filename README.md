@@ -1,6 +1,15 @@
-# AIRSTARK · prototipo web
+# AIRSTARK · aplicación web
 
-Prototipo de monitoreo para la hackatón NASA Space Apps. La interfaz funciona como sitio estático, sin instalación ni servicios externos: abre `index.html` en un navegador moderno.
+Prototipo de salud para la hackatón NASA Space Apps, construido con React y Vite. Cada módulo tiene su propia ruta y ventana de navegación: `/`, `/monitor`, `/gemelo-3d`, `/datos`, `/registro`, `/historial` y `/asistente`.
+
+## Desarrollo
+
+```bash
+npm install
+npm run dev
+```
+
+Para compilar para Vercel: `npm run build`.
 
 ## Incluye
 
@@ -9,12 +18,13 @@ Prototipo de monitoreo para la hackatón NASA Space Apps. La interfaz funciona c
 - Formulario para frecuencia cardíaca, presión arterial, glucosa, peso, estatura, tipo de diabetes, estrés y nota opcional.
 - Cálculo del IMC a partir del peso y estatura ingresados.
 - Historial en `localStorage` del navegador y exportación de los registros introducidos como CSV.
+- Navegación en ventanas separadas: resumen, monitor en vivo, gemelo digital 3D, datos del reloj, registro, historial y Copilot.
 
 Los datos del formulario y los CSV se guardan solo en el navegador de este dispositivo; la demo no transmite ni sincroniza información con un servidor. El historial de demostración es fijo y no es un registro clínico.
 
 ## Interfaz del agente por webhook
 
-El panel **AIRSTARK Copilot** usa el webhook ya definido en `app.js`; la interfaz no muestra controles de configuración al astronauta. Envía la pregunta y un contexto de salud acotado mediante `POST`:
+El panel **AIRSTARK Copilot** usa el webhook definido en `src/lib/health.js`; la interfaz no muestra controles de configuración al astronauta. Envía la pregunta y un contexto de salud acotado mediante `POST`:
 
 ```json
 {
@@ -33,6 +43,6 @@ El contrato usa los campos de un chat n8n: `action`, `sessionId` y `chatInput`. 
 
 ## Flujo para el siguiente módulo
 
-La página ya reserva dos puntos de montaje para los módulos del equipo: `#airstark-live-monitor-root` para telemetría Bluetooth del reloj y `#airstark-digital-twin-root` para el visor volumétrico 3D. Por ahora muestran un estado vacío; no simulan conexión ni datos en vivo. El equipo puede montar cada módulo dentro de su contenedor cuando esté listo.
+Los puntos de montaje de módulos son `#airstark-live-monitor-root` (telemetría Bluetooth) y `#airstark-digital-twin-root` (visor volumétrico 3D). Sus pantallas están separadas; por ahora no simulan conexión ni datos en vivo.
 
 El registro de salud queda como objeto JSON con fecha, frecuencia cardíaca, presión, glucosa, peso, estatura, IMC, nivel de estrés, diabetes, nota y origen. Ese objeto puede enviarse luego al endpoint del backend/modelo de IA; la persistencia de demostración puede reemplazarse por Supabase o por una API propia.
