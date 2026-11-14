@@ -14,7 +14,7 @@ Los datos del formulario y los CSV se guardan solo en el navegador de este dispo
 
 ## Interfaz del agente por webhook
 
-El panel **AIRSTARK Copilot** permite configurar una URL de webhook y conversar con un agente. La interfaz envía la pregunta y un contexto de salud acotado mediante `POST`:
+El panel **AIRSTARK Copilot** usa el webhook ya definido en `app.js`; la interfaz no muestra controles de configuración al astronauta. Envía la pregunta y un contexto de salud acotado mediante `POST`:
 
 ```json
 {

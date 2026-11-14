@@ -6,7 +6,6 @@ const DEMO_RECORDS = [
   {date:'2026-11-10T08:48:00',heartRate:73,bmi:22.2,stress:'Bajo',pressure:'—',glucose:'—',source:'demo'}
 ];
 const STORAGE_KEY = 'airstark.healthRecords.v1';
-const WEBHOOK_STORAGE_KEY = 'airstark.agentWebhook.v1';
 const CHAT_SESSION_STORAGE_KEY = 'airstark.agentSession.v1';
 const DEFAULT_AGENT_WEBHOOK = 'https://www.mrsoft-ai.com/webhook/a5fa83ae-77ad-4c15-b3bd-196acdea9960/chat';
 const $ = (selector) => document.querySelector(selector);
@@ -48,14 +47,32 @@ function importCSV(file){
   reader.onerror=()=>{message.textContent='No se pudo leer el archivo.';message.classList.add('error')};reader.readAsText(file)
 }
 
-function setWebhookStatus(state,label){const status=$('#webhookStatus');status.className=`webhook-status ${state||''}`.trim();status.querySelector('span').textContent=label}
 function addChatMessage(role,text,{error=false,pending=false}={}){const window=$('#chatWindow');const row=document.createElement('div');row.className=`chat-message ${role}${error?' error':''}${pending?' pending':''}`;if(role==='assistant'){const avatar=document.createElement('span');avatar.className='chat-avatar';avatar.textContent='✧';row.append(avatar)}const bubble=document.createElement('div');bubble.className=`chat-bubble ${role==='user'?'user-bubble':'assistant-bubble'}`;if(pending){bubble.textContent='El agente está procesando tu pregunta';const dots=document.createElement('span');dots.className='typing-dots';for(let i=0;i<3;i++)dots.append(document.createElement('i'));bubble.append(dots)}else bubble.textContent=text;row.append(bubble);window.append(row);window.scrollTop=window.scrollHeight;return row}
 function extractAgentResponse(payload){if(typeof payload==='string')return payload.trim();if(Array.isArray(payload))return payload.map(extractAgentResponse).filter(Boolean).join('\n\n');if(payload&&typeof payload==='object'){for(const key of ['answer','response','output','message','reply','text'])if(payload[key]!==undefined){const value=extractAgentResponse(payload[key]);if(value)return value}return JSON.stringify(payload,null,2)}return String(payload??'')}
-function validWebhookUrl(value){try{const url=new URL(value);return url.protocol==='https:'||url.protocol==='http:'}catch{return false}}
 function getAstronautContext(){const records=currentRecords().slice(0,7).map(record=>({recordedAt:record.date,heartRateBpm:record.heartRate??null,bmi:record.bmi??null,stressLevel:record.stress??null,bloodPressureMmHg:record.pressure&&record.pressure!=='—'?record.pressure:null,glucoseMgDl:record.glucose??null,weightKg:record.weight??null,heightCm:record.heightCm??null,diabetesType:record.diabetes??null,source:record.source||'unknown',isMock:record.source==='demo'}));return{latest:records[0]||null,recentRecords:records,containsMockData:records.some(record=>record.isMock)}}
 function getChatSessionId(){let sessionId=localStorage.getItem(CHAT_SESSION_STORAGE_KEY);if(!sessionId){sessionId=globalThis.crypto?.randomUUID?.()||`airstark-${Date.now()}-${Math.random().toString(36).slice(2)}`;localStorage.setItem(CHAT_SESSION_STORAGE_KEY,sessionId)}return sessionId}
-function saveWebhookUrl(){const input=$('#webhookUrl');const url=input.value.trim();if(!validWebhookUrl(url)){input.setCustomValidity('Ingresa una URL HTTP o HTTPS válida.');input.reportValidity();input.setCustomValidity('');return false}try{localStorage.setItem(WEBHOOK_STORAGE_KEY,url);setWebhookStatus('connected','URL CONFIGURADA');$('#webhookConfig').open=false;toast('URL del webhook guardada en este navegador.');return true}catch{toast('No se pudo guardar la URL en este navegador.',true);return false}}
-async function sendAgentQuestion(question){const endpoint=localStorage.getItem(WEBHOOK_STORAGE_KEY)||DEFAULT_AGENT_WEBHOOK;if(!validWebhookUrl(endpoint)){ $('#webhookConfig').open=true;addChatMessage('assistant','La URL del webhook no es válida. Revisa la configuración.',{error:true});setWebhookStatus('pending','URL NO VÁLIDA');return}addChatMessage('user',question);const pendingMessage=addChatMessage('assistant','',{pending:true});const sendButton=$('#sendQuestionButton');const textarea=$('#chatQuestion');sendButton.disabled=true;textarea.disabled=true;setWebhookStatus('pending','ESPERANDO AL AGENTE');try{const chatUrl=new URL(endpoint);chatUrl.searchParams.set('action','sendMessage');const astronautData=getAstronautContext();const chatInput=`${question}\n\nContexto de salud AIRSTARK (JSON; isMock=true identifica datos simulados):\n${JSON.stringify(astronautData)}`;const response=await fetch(chatUrl.toString(),{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sendMessage',sessionId:getChatSessionId(),chatInput,question,astronautData})});const body=await response.text();if(!response.ok)throw Error(`El webhook respondió con HTTP ${response.status}${body?`: ${body.slice(0,220)}`:''}`);let payload=body;try{payload=body?JSON.parse(body):''}catch{}const answer=extractAgentResponse(payload)||'El webhook respondió sin contenido.';pendingMessage.remove();addChatMessage('assistant',answer);setWebhookStatus('connected','WEBHOOK RESPONDIÓ')}catch(error){pendingMessage.remove();const detail=error instanceof TypeError?'No se pudo conectar. Revisa que la URL sea correcta y que el webhook permita CORS desde este sitio.':error.message;addChatMessage('assistant',detail,{error:true});setWebhookStatus('error','ERROR DE CONEXIÓN')}finally{sendButton.disabled=false;textarea.disabled=false;textarea.focus()}}
+async function sendAgentQuestion(question){
+  addChatMessage('user',question);
+  const pendingMessage=addChatMessage('assistant','',{pending:true});
+  const sendButton=$('#sendQuestionButton');
+  const textarea=$('#chatQuestion');
+  sendButton.disabled=true;textarea.disabled=true;
+  try{
+    const chatUrl=new URL(DEFAULT_AGENT_WEBHOOK);chatUrl.searchParams.set('action','sendMessage');
+    const astronautData=getAstronautContext();
+    const chatInput=`${question}\n\nContexto de salud AIRSTARK (JSON; isMock=true identifica datos simulados):\n${JSON.stringify(astronautData)}`;
+    const response=await fetch(chatUrl.toString(),{method:'POST',mode:'cors',credentials:'omit',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sendMessage',sessionId:getChatSessionId(),chatInput,question,astronautData})});
+    const body=await response.text();
+    if(!response.ok)throw Error(`HTTP ${response.status}`);
+    let payload=body;try{payload=body?JSON.parse(body):''}catch{}
+    const answer=extractAgentResponse(payload)||'El asistente respondió sin contenido.';
+    pendingMessage.remove();addChatMessage('assistant',answer);
+  }catch(error){
+    pendingMessage.remove();
+    console.error('AIRSTARK Copilot request failed.',error);
+    addChatMessage('assistant','No pude procesar tu pregunta en este momento. Inténtalo de nuevo en unos instantes.',{error:true});
+  }finally{sendButton.disabled=false;textarea.disabled=false;textarea.focus()}
+}
 
 document.addEventListener('DOMContentLoaded',()=>{
   $('#todayDate').textContent=new Intl.DateTimeFormat('es-PE',{day:'2-digit',month:'short',year:'numeric'}).format(new Date()).toUpperCase().replace('.','');
@@ -64,8 +81,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   const zone=$('#dropZone');zone.addEventListener('dragover',event=>{event.preventDefault();zone.classList.add('dragover')});zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));zone.addEventListener('drop',event=>{event.preventDefault();zone.classList.remove('dragover');importCSV(event.dataTransfer.files[0])});
   $('#healthForm').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;if(!form.reportValidity())return;const data=new FormData(form);const height=Number(data.get('height'))/100;const record={date:new Date().toISOString(),heartRate:Number(data.get('heartRate')),pressure:String(data.get('bloodPressure')).replace(/\s/g,''),glucose:Number(data.get('glucose')),weight:Number(data.get('weight')),heightCm:Number(data.get('height')),bmi:Number((Number(data.get('weight'))/(height*height)).toFixed(1)),stress:data.get('stress'),diabetes:data.get('diabetes'),notes:String(data.get('notes')||'').trim(),source:'manual'};try{saveRecords([record,...getRecords()]);renderLatest();$('#formMessage').textContent=`Registro guardado · IMC calculado: ${record.bmi}.`;$('#formMessage').classList.remove('error');form.reset();toast('Tu registro quedó guardado en este dispositivo.')}catch{$('#formMessage').textContent='No se pudo guardar. Revisa el almacenamiento del navegador.';$('#formMessage').classList.add('error')}});
   $('#exportButton').addEventListener('click',()=>{const records=getRecords();if(!records.length){toast('Aún no hay registros para exportar.',true);return}const header=['fecha','ritmo_cardiaco_bpm','presion_arterial_mmhg','glucosa_mg_dl','peso_kg','estatura_cm','imc','estres','diabetes','notas','origen'];const quote=value=>'"'+String(value??'').replaceAll('"','""')+'"';const body=records.map(r=>[r.date,r.heartRate,r.pressure,r.glucose,r.weight,r.heightCm,r.bmi,r.stress,r.diabetes,r.notes,r.source].map(quote).join(','));const blob=new Blob(['\uFEFF'+[header.join(','),...body].join('\r\n')],{type:'text/csv;charset=utf-8'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`airstark-registros-${new Date().toISOString().slice(0,10)}.csv`;link.click();URL.revokeObjectURL(link.href);toast('CSV exportado.')});
-  const webhookUrl=localStorage.getItem(WEBHOOK_STORAGE_KEY)||DEFAULT_AGENT_WEBHOOK;$('#webhookUrl').value=webhookUrl;setWebhookStatus('connected','URL CONFIGURADA');
-  $('#saveWebhookButton').addEventListener('click',saveWebhookUrl);$('#webhookUrl').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();saveWebhookUrl()}});
   $('#chatForm').addEventListener('submit',event=>{event.preventDefault();const textarea=$('#chatQuestion');const question=textarea.value.trim();if(!question){textarea.focus();return}textarea.value='';sendAgentQuestion(question)});
   $('#chatQuestion').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();$('#chatForm').requestSubmit()}});
   document.querySelectorAll('.suggested-questions button').forEach(button=>button.addEventListener('click',()=>{$('#chatQuestion').value=button.dataset.question;$('#chatQuestion').focus()}));
