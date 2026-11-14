@@ -4,6 +4,7 @@ import { PageHeading } from '../components/ui.jsx';
 import { copy, useLanguage } from '../i18n.jsx';
 import { getAstronautProfile } from '../lib/profile.js';
 import Icon from '../components/Icon.jsx';
+import { insertCloudRecords } from '../lib/supabase.js';
 
 export default function HealthData() {
   const { language } = useLanguage();
@@ -22,6 +23,7 @@ export default function HealthData() {
       result.records = result.records.map((record) => ({ ...record, astronautId }));
       const otherRecords = getSavedRecords().filter((record) => record.sourceFile !== file.name);
       saveRecords([...otherRecords, ...result.records]);
+      await insertCloudRecords(result.records, astronautId);
       setVersion((value) => value + 1);
       const skipped = result.ignoredZeroReadings ? ` ${result.ignoredZeroReadings} ${t.skipped}` : '';
       setMessage(`${result.records.length} ${t.imported} ${file.name}.${skipped}`);

@@ -4,6 +4,8 @@ import { getSavedRecords } from '../lib/health.js';
 import { astronautInitials, getAstronautProfile, saveAstronautProfile } from '../lib/profile.js';
 import { copy, useLanguage } from '../i18n.jsx';
 import Icon from '../components/Icon.jsx';
+import { saveCloudProfile } from '../lib/supabase.js';
+import { isSupabaseConfigured } from '../lib/supabase.js';
 
 export default function Profile() {
   const { language } = useLanguage();
@@ -11,7 +13,7 @@ export default function Profile() {
   const [profile, setProfile] = useState(getAstronautProfile);
   const [message, setMessage] = useState('');
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const updated = saveAstronautProfile({
@@ -21,14 +23,22 @@ export default function Profile() {
       role: String(formData.get('role') || '').trim(),
     });
     setProfile(updated);
-    setMessage(t.saved);
+    try {
+      const saved = await saveCloudProfile(updated);
+      if (saved?.crewId && saved.crewId !== updated.crewId) {
+        setProfile({ ...updated, crewId: saved.crewId });
+      }
+      setMessage(t.saved);
+    } catch (error) {
+      setMessage(`${t.saved} ${language === 'en' ? 'Cloud sync failed:' : 'Falló la sincronización:'} ${error.message}`);
+    }
   }
 
   const localRecords = getSavedRecords().filter((record) => !record.astronautId || record.astronautId === profile.crewId);
   const roleValue = profile.isDemo ? t.roleDefault : profile.role;
 
   return <>
-    <PageHeading eyebrow={t.eyebrow} title={t.title} description={t.description} action={<span className="profile-mode-tag"><i />{profile.isDemo ? t.demo : t.local}</span>} />
+    <PageHeading eyebrow={t.eyebrow} title={t.title} description={t.description} action={<span className="profile-mode-tag"><i />{profile.isDemo ? t.demo : isSupabaseConfigured ? t.cloud : t.local}</span>} />
     <section className="profile-layout">
       <article className="panel profile-edit-panel">
         <div className="panel-heading"><div><span className="section-kicker">{t.identity}</span><h2>{t.editTitle}</h2></div></div>

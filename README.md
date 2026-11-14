@@ -26,9 +26,17 @@ Para compilar para Vercel: `npm run build`.
 
 El perfil, los datos del formulario y los CSV se guardan solo en el navegador de este dispositivo; la demo no transmite ni sincroniza información con un servidor. El historial de demostración es fijo y no es un registro clínico.
 
-## Supabase (preparación)
+## Supabase
 
-`supabase/schema.sql` crea tablas para registros de salud y notificaciones con Row Level Security ligado al usuario autenticado. El proyecto todavía no sincroniza datos con Supabase: se requiere crear el proyecto, habilitar autenticación y configurar el cliente web con la URL y la clave `anon` pública. Nunca exponer una clave `service_role` en el navegador.
+`supabase/schema.sql` crea perfiles, registros de salud y notificaciones con Row Level Security ligado al usuario autenticado. Para habilitar la sincronización:
+
+1. Ejecuta `supabase/schema.sql` en el SQL Editor del proyecto Supabase.
+2. Habilita Email/Password en Authentication.
+3. Copia `.env.example` a `.env.local` y completa `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` con la URL del proyecto y la clave pública `publishable`.
+4. En Supabase, habilita **Anonymous Sign-Ins** en Authentication settings.
+5. Reinicia Vite. La demo abre directamente, crea una sesión anónima y pide el perfil de tripulación en la pantalla inicial. Esa sesión se conserva en ese navegador; al borrar sus datos, la demo crea otro usuario anónimo.
+
+Se usa la clave pública `publishable` con las políticas RLS del esquema. Nunca expongas una clave `secret` o `service_role` en el navegador. Sin configuración de Supabase, la aplicación conserva el modo local de demostración.
 
 El reconocimiento de voz usa las APIs disponibles en el navegador. Algunos navegadores requieren conexión de red para transcribir; para uso real durante una misión se necesitaría un motor de voz que funcione sin conexión.
 

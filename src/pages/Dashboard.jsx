@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDate, getCurrentRecords, getSavedRecords, stressLabel } from '../lib/health.js';
 import { MetricCard, PageHeading } from '../components/ui.jsx';
 import { copy, useLanguage } from '../i18n.jsx';
 import Icon from '../components/Icon.jsx';
+import { NOTIFICATIONS_STORAGE_KEY } from '../lib/supabase.js';
 
 function HeartRateTrend({ records, language, text }) {
   const samples = useMemo(() => records.filter((record) => Number.isFinite(Number(record.heartRate)) && Number(record.heartRate) > 0).slice(0, 7).reverse(), [records]);
@@ -28,6 +29,12 @@ export default function Dashboard() {
   const { language } = useLanguage();
   const text = copy[language].dashboard;
   const records = useMemo(() => getCurrentRecords(), []);
+  const [notifications, setNotifications] = useState(() => { try { return JSON.parse(localStorage.getItem(NOTIFICATIONS_STORAGE_KEY) || '[]'); } catch { return []; } });
+  useEffect(() => {
+    const refresh = () => { try { setNotifications(JSON.parse(localStorage.getItem(NOTIFICATIONS_STORAGE_KEY) || '[]')); } catch { setNotifications([]); } };
+    window.addEventListener('airstark-cloud-data-loaded', refresh);
+    return () => window.removeEventListener('airstark-cloud-data-loaded', refresh);
+  }, []);
   const activity = useMemo(() => getSavedRecords().sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 4), []);
   const latest = records[0] || getLatestRecord();
   const hasRealRecords = records.some((record) => record.source !== 'demo');
@@ -50,7 +57,7 @@ export default function Dashboard() {
     <section className="dashboard-trend-panel panel"><div className="dashboard-trend-heading"><div><span className="section-kicker">{text.trend}</span><h2>{text.heartTrend}</h2><div className="trend-current-value"><strong>{heartRate}</strong><span>bpm</span><small>{hasRealRecords ? text.latestRecord : text.sampleReading}</small></div></div><span className="trend-unit">{text.trendUnit}</span></div><HeartRateTrend records={records} language={language} text={text} /></section>
     <section className="dashboard-bottom-grid">
       <article className="panel dashboard-activity-panel"><span className="section-kicker">{text.activityEyebrow}</span><h2>{text.activityTitle}</h2>{activity.length ? <div className="mission-activity-list">{activity.map((record, index) => <div className="mission-activity-item" key={`${record.date}-${index}`}><span className={`activity-marker ${record.source === 'csv' ? 'csv' : 'manual'}`}><Icon name={record.source === 'csv' ? 'watch' : 'plus'} size={13} /></span><span className="activity-copy"><strong>{record.source === 'csv' ? text.csvEvent : text.manualEvent}</strong><small>{formatDate(record.date, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }, language === 'en' ? 'en-US' : 'es-PE')}</small></span><span className="activity-reading">{record.heartRate ? `${record.heartRate} bpm` : record.bmi ? `BMI ${Number(record.bmi).toFixed(1)}` : '—'}</span></div>)}</div> : <p className="dashboard-empty-copy">{text.activityEmpty}</p>}</article>
-      <article className="panel dashboard-notifications-panel" id="notifications-panel"><div className="dashboard-notifications-head"><div><span className="section-kicker">{text.notificationsEyebrow}</span><h2>{text.notificationsTitle}</h2></div><span className="notification-bell" aria-hidden="true"><Icon name="bell" size={16} /></span></div><div className="notifications-empty"><span className="notification-status-dot" /><strong>{text.noAlerts}</strong><p>{text.noAlertsHint}</p><Link to="/asistente" className="notification-action">{text.copilot} <Icon name="arrowRight" size={13} /></Link></div><small className="notification-disclaimer">{text.panelNotice}</small></article>
+      <article className="panel dashboard-notifications-panel" id="notifications-panel"><div className="dashboard-notifications-head"><div><span className="section-kicker">{text.notificationsEyebrow}</span><h2>{text.notificationsTitle}</h2></div><span className="notification-bell" aria-hidden="true"><Icon name="bell" size={16} /></span></div>{notifications.length ? <div className="cloud-notification-list">{notifications.slice(0, 5).map((item) => <div className={`cloud-notification ${item.severity}`} key={item.id}><span className="notification-status-dot" /><div><strong>{item.title}</strong><p>{item.message}</p><small>{formatDate(item.created_at, { hour: '2-digit', minute: '2-digit', hour12: false }, language === 'en' ? 'en-US' : 'es-PE')}</small></div></div>)}</div> : <div className="notifications-empty"><span className="notification-status-dot" /><strong>{text.noAlerts}</strong><p>{text.noAlertsHint}</p><Link to="/asistente" className="notification-action">{text.copilot} <Icon name="arrowRight" size={13} /></Link></div>}<small className="notification-disclaimer">{text.panelNotice}</small></article>
     </section>
   </>;
 }

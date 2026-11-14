@@ -154,7 +154,10 @@ export async function askAgent(question, language = 'en') {
   const astronautData = getAstronautContext();
   const answerLanguage = language === 'es' ? 'Spanish' : 'English';
   const healthContextLabel = language === 'es' ? 'Contexto de salud AIRSTARK (JSON; isMock=true identifica datos simulados)' : 'AIRSTARK health context (JSON; isMock=true identifies simulated data)';
-  const chatInput = `Reply to the astronaut in ${answerLanguage}. ${question}\n\n${healthContextLabel}:\n${JSON.stringify(astronautData)}`;
+  const coaching = language === 'es'
+    ? 'Responde como asistente de bienestar, con lenguaje claro y empático. Sé breve: máximo 100 palabras, evita repetir ideas y usa frases cortas. Explica los datos disponibles, distingue datos simulados de mediciones reales y señala incertidumbres. Para orientación de salud usa solo: **Resumen** (1 frase) y **Plan de acción** (hasta 3 pasos concretos, incluyendo cuándo consultar si aplica). Menciona señales de urgencia solo cuando sean pertinentes. No diagnostiques, no prescribas ni recomiendes cambiar medicamentos; valida decisiones clínicas con un profesional. Si faltan datos esenciales, haz una pregunta breve antes de concluir.'
+    : 'Respond as a clear, empathetic wellbeing assistant. Be concise: no more than 100 words, avoid repetition, and use short sentences. Explain available data, distinguish simulated from real measurements, and state uncertainty. For health guidance use only: **Summary** (one sentence) and **Action plan** (up to 3 concrete steps, including when to seek care if relevant). Mention urgent warning signs only when relevant. Do not diagnose, prescribe, or recommend medication changes; confirm clinical decisions with a professional. If essential information is missing, ask one brief question before concluding.';
+  const chatInput = `${coaching}\n\nReply to the astronaut in ${answerLanguage}. ${question}\n\n${healthContextLabel}:\n${JSON.stringify(astronautData)}`;
   const chatUrl = new URL(AGENT_WEBHOOK);
   chatUrl.searchParams.set('action', 'sendMessage');
   const response = await fetch(chatUrl, {

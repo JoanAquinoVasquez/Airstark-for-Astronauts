@@ -5,6 +5,7 @@ import { copy, useLanguage } from '../i18n.jsx';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition.js';
 import { getAstronautProfile } from '../lib/profile.js';
 import Icon from '../components/Icon.jsx';
+import { insertCloudRecords } from '../lib/supabase.js';
 
 export default function HealthForm() {
   const { language } = useLanguage();
@@ -49,7 +50,7 @@ export default function HealthForm() {
     if (voice.listening && activeVoiceField === name) { voice.stop(); return; }
     dictate(name);
   }
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -81,6 +82,7 @@ export default function HealthForm() {
     };
     try {
       saveRecords([record, ...getSavedRecords()]);
+      await insertCloudRecords([record], record.astronautId);
       setError(false); setFieldErrors({}); setMessage(`${t.saved} ${record.bmi}.`); form.reset();
     } catch { setError(true); setMessage(t.saveFail); }
   }
