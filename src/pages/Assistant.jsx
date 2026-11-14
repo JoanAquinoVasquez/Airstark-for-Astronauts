@@ -9,7 +9,9 @@ export default function Assistant() {
   const [question, setQuestion] = useState('');
   const [pending, setPending] = useState(false);
   const bottom = useRef(null);
-  useEffect(() => bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }), [messages, pending]);
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages, pending]);
 
   async function send(text = question) {
     const clean = text.trim();
