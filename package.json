@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync:simulator": "npm --prefix GD-con-Simulacion/frontend run build && node scripts/sync-simulator.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
