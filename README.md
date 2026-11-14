@@ -33,4 +33,6 @@ El contrato usa los campos de un chat n8n: `action`, `sessionId` y `chatInput`. 
 
 ## Flujo para el siguiente módulo
 
-El registro queda como objeto JSON con fecha, frecuencia cardíaca, presión, glucosa, peso, estatura, IMC, nivel de estrés, diabetes, nota y origen. Ese objeto puede enviarse luego al endpoint del backend/modelo de IA; la persistencia de demostración puede reemplazarse por Supabase o por una API propia.
+La página ya reserva dos puntos de montaje para los módulos del equipo: `#airstark-live-monitor-root` para telemetría Bluetooth del reloj y `#airstark-digital-twin-root` para el visor volumétrico 3D. Por ahora muestran un estado vacío; no simulan conexión ni datos en vivo. El equipo puede montar cada módulo dentro de su contenedor cuando esté listo.
+
+El registro de salud queda como objeto JSON con fecha, frecuencia cardíaca, presión, glucosa, peso, estatura, IMC, nivel de estrés, diabetes, nota y origen. Ese objeto puede enviarse luego al endpoint del backend/modelo de IA; la persistencia de demostración puede reemplazarse por Supabase o por una API propia.
