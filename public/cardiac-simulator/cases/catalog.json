@@ -1,0 +1,12 @@
+[
+  {
+    "caseId": "duke-heart-4d",
+    "title": "Duke Heart 4D",
+    "modality": "CT",
+    "dataMode": "acquired",
+    "hasOriginalCT": false,
+    "completeHeartVerified": false,
+    "phaseCount": 16,
+    "datasetType": "Segmentaciones cardíacas 4D"
+  }
+]

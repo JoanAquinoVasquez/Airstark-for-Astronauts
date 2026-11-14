@@ -1,0 +1,689 @@
+{
+  "caseId": "duke-heart-4d",
+  "title": "Duke Heart 4D",
+  "datasetType": "Segmentaciones cardíacas 4D",
+  "modality": "CT",
+  "dataMode": "acquired",
+  "hasOriginalCT": false,
+  "completeHeartVerified": false,
+  "referenceBpm": null,
+  "phaseTimesNormalized": [
+    0.0,
+    0.1,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.9
+  ],
+  "phaseTiming": "acquisition",
+  "phaseCount": 16,
+  "structures": [
+    {
+      "id": "left-ventricle",
+      "name": "Ventrículo izquierdo",
+      "color": "#E89AA3",
+      "label": 1
+    },
+    {
+      "id": "right-ventricle",
+      "name": "Ventrículo derecho",
+      "color": "#587BC0",
+      "label": 2
+    },
+    {
+      "id": "left-atrium",
+      "name": "Aurícula izquierda",
+      "color": "#E684A2",
+      "label": 3
+    },
+    {
+      "id": "right-atrium",
+      "name": "Aurícula derecha",
+      "color": "#8B83BC",
+      "label": 4
+    },
+    {
+      "id": "myocardium",
+      "name": "Miocardio",
+      "color": "#A63F66",
+      "label": 5
+    },
+    {
+      "id": "heart-wall",
+      "name": "Pared cardíaca",
+      "color": "#926C9A",
+      "label": 6
+    },
+    {
+      "id": "aorta",
+      "name": "Aorta",
+      "color": "#DA719F",
+      "label": 7
+    },
+    {
+      "id": "pulmonary-artery",
+      "name": "Arteria pulmonar",
+      "color": "#728CDD",
+      "label": 8
+    },
+    {
+      "id": "right-coronary-artery",
+      "name": "Coronaria derecha",
+      "color": "#ECA08E",
+      "label": 9
+    },
+    {
+      "id": "left-coronary-artery",
+      "name": "Coronaria izquierda",
+      "color": "#E7AB83",
+      "label": 10
+    }
+  ],
+  "coordinateSystem": "LPS",
+  "dimensions": [
+    179,
+    172,
+    182
+  ],
+  "voxelSpacingMm": [
+    0.8,
+    0.8,
+    0.8
+  ],
+  "voxelToWorld": [
+    0.8,
+    0.0,
+    0.0,
+    -60.0375,
+    0.0,
+    0.8,
+    0.0,
+    -238.32265625,
+    0.0,
+    0.0,
+    0.8,
+    -277.85,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "worldBoundsMm": [
+    [
+      -60.4375,
+      -238.72265625,
+      -278.25
+    ],
+    [
+      82.76250000000002,
+      -101.12265624999998,
+      -132.65
+    ]
+  ],
+  "assets": {
+    "volumes": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "segmentations": [
+      "segmentations/000.raw.gz",
+      "segmentations/001.raw.gz",
+      "segmentations/002.raw.gz",
+      "segmentations/003.raw.gz",
+      "segmentations/004.raw.gz",
+      "segmentations/005.raw.gz",
+      "segmentations/006.raw.gz",
+      "segmentations/007.raw.gz",
+      "segmentations/008.raw.gz",
+      "segmentations/009.raw.gz",
+      "segmentations/010.raw.gz",
+      "segmentations/011.raw.gz",
+      "segmentations/012.raw.gz",
+      "segmentations/013.raw.gz",
+      "segmentations/014.raw.gz",
+      "segmentations/015.raw.gz"
+    ],
+    "meshes": [
+      "meshes/000.glb",
+      "meshes/001.glb",
+      "meshes/002.glb",
+      "meshes/003.glb",
+      "meshes/004.glb",
+      "meshes/005.glb",
+      "meshes/006.glb",
+      "meshes/007.glb",
+      "meshes/008.glb",
+      "meshes/009.glb",
+      "meshes/010.glb",
+      "meshes/011.glb",
+      "meshes/012.glb",
+      "meshes/013.glb",
+      "meshes/014.glb",
+      "meshes/015.glb"
+    ]
+  },
+  "notes": [
+    "Segmentaciones ASCardio derivadas de CT con sincronización ECG. La colección distribuye máscaras y puntos anatómicos.",
+    "Cobertura parcial: segmentación de las cuatro cavidades, miocardio y vasos etiquetados. Algunas estructuras llegan al límite del volumen. Las venas cavas, venas pulmonares y válvulas carecen de etiquetas independientes.",
+    "Fases de adquisición seleccionadas de 0 a 90% del ciclo R–R, con intervalos no uniformes. Se usó una reconstrucción por fase."
+  ],
+  "source": {
+    "dataset": "Duke-Heart-4DLabelmaps",
+    "url": "https://github.com/Project-MONAI/monai-physio/releases/download/2026.07.1/Duke-Heart-4DLabelmaps.zip",
+    "license": "CC BY",
+    "attribution": "Dr. W. Paul Segars, Center for Virtual Imaging Trials, Duke University",
+    "citation": "Malin EJ et al. Med Phys. 2025;52(7):e17945. https://doi.org/10.1002/mp.17945",
+    "release": "MONAI Physio 2026.07.1",
+    "processing": "Máscaras ASCardio; rejilla LPS común de 0,8 mm, vecino más próximo, Marching Cubes, suavizado subvoxel y reducción de caras. Las mallas se reproducen por fase.",
+    "phaseTimingBasis": "Índices nominales gNNN del estudio gated; reconstrucciones s1.500, sin duplicar el extremo del 100%.",
+    "phaseGeometry": {
+      "volumes": [],
+      "segmentations": [
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "dimensions": [
+            512,
+            512,
+            94
+          ],
+          "voxelSpacingMm": [
+            0.39453125,
+            0.39453125,
+            1.5
+          ],
+          "voxelToWorld": [
+            0.39453125,
+            0.0,
+            0.0,
+            -89.802734375,
+            0.0,
+            -0.39453125,
+            0.0,
+            -58.197265625,
+            0.0,
+            0.0,
+            1.5,
+            -275.5,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ]
+    }
+  }
+}

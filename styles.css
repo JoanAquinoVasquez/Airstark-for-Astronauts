@@ -1115,3 +1115,205 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   }
 }
 
+/* ==========================================================================
+   3D DIGITAL TWIN · CARDIAC SIMULATOR INTEGRATION
+   ========================================================================== */
+.twin-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(73, 221, 178, 0.35);
+  background: rgba(73, 221, 178, 0.08);
+  color: #7be3c1;
+  font: 600 9px var(--mono);
+  letter-spacing: 0.06em;
+}
+
+.twin-study-pill {
+  font: 600 7px var(--mono);
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(84, 215, 238, 0.15);
+  color: var(--cyan);
+  border: 1px solid rgba(84, 215, 238, 0.3);
+}
+
+.twin-panel {
+  padding: 18px 20px !important;
+  transition: all 0.3s ease;
+}
+
+.twin-module-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.twin-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.twin-dataset-chip {
+  font: 500 7.5px var(--mono);
+  color: var(--cyan);
+  background: rgba(84, 215, 238, 0.1);
+  border: 1px solid rgba(84, 215, 238, 0.25);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.twin-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.twin-source-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 16px;
+  background: rgba(6, 17, 28, 0.85);
+  border: 1px solid rgba(139, 181, 208, 0.2);
+}
+
+.twin-toggle-btn {
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: #87a2b5;
+  font: 500 8px var(--mono);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.twin-toggle-btn:hover {
+  color: #e5f4fa;
+}
+
+.twin-toggle-btn.active {
+  background: rgba(84, 215, 238, 0.16);
+  color: var(--cyan);
+}
+
+.twin-action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 6px;
+  border: 1px solid rgba(84, 215, 238, 0.25);
+  background: rgba(14, 38, 60, 0.6);
+  color: #d4eff8;
+  font: 500 9px var(--font);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.twin-action-button:hover {
+  border-color: var(--cyan);
+  background: rgba(14, 38, 60, 0.9);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.twin-frame-wrapper {
+  width: 100%;
+  height: 800px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(84, 215, 238, 0.22);
+  background: #060e18;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.twin-simulator-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  background: #060e18;
+}
+
+.twin-panel.fullscreen-mode {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  border-radius: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 12px 18px !important;
+  background: #050d18 !important;
+}
+
+.twin-panel.fullscreen-mode .twin-frame-wrapper {
+  height: calc(100vh - 84px) !important;
+}
+
+.twin-bottom-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.twin-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(14, 33, 51, 0.7), rgba(8, 23, 37, 0.8));
+}
+
+.twin-info-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  background: rgba(84, 215, 238, 0.1);
+  color: var(--cyan);
+  border: 1px solid rgba(84, 215, 238, 0.25);
+  flex: 0 0 28px;
+}
+
+.twin-info-card strong {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #e2f0f7;
+  margin-bottom: 2px;
+}
+
+.twin-info-card p {
+  margin: 0;
+  font-size: 8px;
+  color: #839bb0;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .twin-bottom-info {
+    grid-template-columns: 1fr;
+  }
+  .twin-frame-wrapper {
+    height: 600px;
+  }
+}
+
+
