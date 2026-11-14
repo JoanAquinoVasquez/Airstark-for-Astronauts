@@ -3,6 +3,7 @@ import { AstronautAvatar, PageHeading } from '../components/ui.jsx';
 import { getSavedRecords } from '../lib/health.js';
 import { astronautInitials, getAstronautProfile, saveAstronautProfile } from '../lib/profile.js';
 import { copy, useLanguage } from '../i18n.jsx';
+import Icon from '../components/Icon.jsx';
 
 export default function Profile() {
   const { language } = useLanguage();
@@ -36,7 +37,7 @@ export default function Profile() {
           <label className="field"><span>{t.crewId} <em>*</em></span><input className="profile-text-input" name="crewId" type="text" maxLength="24" defaultValue={profile.crewId} placeholder="A-01" required /></label>
           <label className="field"><span>{t.mission} <em>*</em></span><input className="profile-text-input" name="mission" type="text" maxLength="80" defaultValue={profile.mission} placeholder={t.missionPlaceholder} required /></label>
           <label className="field"><span>{t.role}</span><input className="profile-text-input" name="role" type="text" maxLength="80" defaultValue={roleValue} placeholder={t.rolePlaceholder} /></label>
-          <div className="profile-form-footer"><small>{t.localNote}</small><button className="submit-button" type="submit">{t.save} <span>→</span></button></div>
+          <div className="profile-form-footer"><small>{t.localNote}</small><button className="submit-button" type="submit">{t.save} <Icon name="arrowRight" size={14} /></button></div>
           {message && <div className="form-message" role="status">{message}</div>}
         </form>
       </article>

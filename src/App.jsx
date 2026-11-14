@@ -11,16 +11,17 @@ import History from './pages/History.jsx';
 import Assistant from './pages/Assistant.jsx';
 import Profile from './pages/Profile.jsx';
 import { astronautInitials, getAstronautProfile } from './lib/profile.js';
+import Icon from './components/Icon.jsx';
 
 const navigation = [
-  { to: '/', label: 0, icon: '◫', end: true },
-  { to: '/monitor', label: 1, icon: '⌁' },
-  { to: '/gemelo-3d', label: 2, icon: '◇' },
-  { to: '/datos', label: 3, icon: '⌚' },
-  { to: '/registro', label: 4, icon: '＋' },
-  { to: '/historial', label: 5, icon: '◷' },
-  { to: '/asistente', label: 6, icon: '✧' },
-  { to: '/perfil', label: 7, icon: '♙' },
+  { to: '/', label: 0, icon: 'overview', end: true },
+  { to: '/monitor', label: 1, icon: 'pulse' },
+  { to: '/gemelo-3d', label: 2, icon: 'cube' },
+  { to: '/datos', label: 3, icon: 'watch' },
+  { to: '/registro', label: 4, icon: 'plus' },
+  { to: '/historial', label: 5, icon: 'history' },
+  { to: '/asistente', label: 6, icon: 'assistant' },
+  { to: '/perfil', label: 7, icon: 'user' },
 ];
 
 function AppShell() {
@@ -52,20 +53,20 @@ function AppShell() {
         <nav className="nav-links" aria-label={language === 'en' ? 'Main navigation' : 'Navegación principal'}>
           {navigation.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
-              <span>{item.icon}</span>{text.app.nav[item.label]}
+              <span className="nav-icon"><Icon name={item.icon} size={16} /></span>{text.app.nav[item.label]}
             </NavLink>
           ))}
         </nav>
         <div className="sidebar-spacer" />
-        <div className="mission-card"><span className="live-dot" /><div><small>{text.app.missionStatus}</small><strong>{text.app.simulation}</strong></div><span className="mission-orbit">✳</span></div>
-        <NavLink className="sidebar-foot profile-sidebar-link" to="/perfil"><span className="avatar">{astronautInitials(astronaut.name)}</span><span className="crew"><strong>{astronaut.name}</strong><small>{language === 'en' ? `Crew · ${astronaut.crewId}` : `Tripulación · ${astronaut.crewId}`}</small></span><span className="more">···</span></NavLink>
+        <div className="mission-card"><span className="live-dot" /><div><small>{text.app.missionStatus}</small><strong>{text.app.simulation}</strong></div><span className="mission-orbit"><Icon name="sparkles" size={15} /></span></div>
+        <NavLink className="sidebar-foot profile-sidebar-link" to="/perfil"><span className="avatar">{astronautInitials(astronaut.name)}</span><span className="crew"><strong>{astronaut.name}</strong><small>{language === 'en' ? `Crew · ${astronaut.crewId}` : `Tripulación · ${astronaut.crewId}`}</small></span><span className="more"><Icon name="more" size={15} /></span></NavLink>
       </aside>
 
       <main className="main-content">
         <header className="topbar">
-          <button className="menu-button" aria-label={text.app.menu} onClick={() => setMenuOpen((open) => !open)}>☰</button>
+          <button className="menu-button" aria-label={text.app.menu} onClick={() => setMenuOpen((open) => !open)}><Icon name="menu" size={17} /></button>
           <div className="breadcrumb">AIRSTARK <span>/</span> <b>{text.app.nav[current.label]}</b></div>
-          <div className="top-actions"><Link className="notifications-shortcut" to="/#notifications-panel" aria-label={language === 'en' ? 'Notifications' : 'Notificaciones'} title={language === 'en' ? 'Notifications' : 'Notificaciones'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg><i /></Link><div className="language-switch" role="group" aria-label="Choose language / Elegir idioma"><button type="button" className={language === 'en' ? 'active' : ''} aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button><button type="button" className={language === 'es' ? 'active' : ''} aria-pressed={language === 'es'} onClick={() => setLanguage('es')}>ES</button></div><span className="mission-pill"><i /> {text.app.missionDemo}</span><a className="space-apps-mark" href="https://www.spaceappschallenge.org/" target="_blank" rel="noreferrer" aria-label="NASA Space Apps Challenge"><img src="https://assets.spaceappschallenge.org/media/images/Space_Apps_Logo_Color_and_White.width-440.jpegquality-60.png" alt="NASA Space Apps Challenge" /></a><Link className="top-avatar" to="/perfil" aria-label={text.app.nav[7]}>{astronautInitials(astronaut.name)}</Link></div>
+          <div className="top-actions"><Link className="notifications-shortcut" to="/#notifications-panel" aria-label={language === 'en' ? 'Notifications' : 'Notificaciones'} title={language === 'en' ? 'Notifications' : 'Notificaciones'}><Icon name="bell" size={16} /><i /></Link><div className="language-switch" role="group" aria-label="Choose language / Elegir idioma"><button type="button" className={language === 'en' ? 'active' : ''} aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button><button type="button" className={language === 'es' ? 'active' : ''} aria-pressed={language === 'es'} onClick={() => setLanguage('es')}>ES</button></div><span className="mission-pill"><i /> {text.app.missionDemo}</span><a className="space-apps-mark" href="https://www.spaceappschallenge.org/" target="_blank" rel="noreferrer" aria-label="NASA Space Apps Challenge"><img src="https://assets.spaceappschallenge.org/media/images/Space_Apps_Logo_Color_and_White.width-440.jpegquality-60.png" alt="NASA Space Apps Challenge" /></a><Link className="top-avatar" to="/perfil" aria-label={text.app.nav[7]}>{astronautInitials(astronaut.name)}</Link></div>
         </header>
         <div className="route-content" key={location.pathname}>
           <Routes>

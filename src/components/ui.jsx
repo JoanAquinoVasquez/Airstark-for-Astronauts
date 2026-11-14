@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { copy, useLanguage } from '../i18n.jsx';
+import Icon from './Icon.jsx';
 
 export function PageHeading({ eyebrow, title, description, action }) {
   return <div className="page-heading"><div><span className="section-kicker">{eyebrow}</span><h1>{title}</h1>{description && <p>{description}</p>}</div>{action && <div className="page-heading-action">{action}</div>}</div>;
@@ -16,7 +17,7 @@ export function MetricCard({ icon, label, value, unit, detail, tone = 'cyan', st
   const text = copy[language].dashboard;
   const points = chartSeries[tone] || chartSeries.cyan;
   const path = points.map((point, index) => `${index ? 'L' : 'M'} ${(index / (points.length - 1)) * 300} ${34 - point * 0.35}`).join(' ');
-  return <article className={`metric-card ${tone === 'blue' ? 'bmi-card' : tone === 'green' ? 'stress-card' : 'heart-card'}`}><div className="metric-top"><span className={`metric-icon ${tone === 'blue' ? 'bmi-icon' : tone === 'green' ? 'stress-icon' : ''}`}>{icon}</span><span className="metric-label">{label}</span><span className="metric-menu" aria-hidden="true">···</span></div><div className="metric-value"><strong>{value}</strong>{unit && <span>{unit}</span>}</div><div className="metric-bottom"><span className="metric-status good"><i />{status}</span><span className="metric-context">{detail}</span></div>{visual === 'sparkline' ? <div className="sparkline" role="img" aria-label={`${label} trend`}><svg viewBox="0 0 300 36" preserveAspectRatio="none"><path d={path} /></svg></div> : visual === 'bmi' ? <div className="bmi-scale" aria-label={language === 'en' ? 'Visual body mass index scale' : 'Escala visual del índice de masa corporal'}><div className="scale-bar"><span style={{ left: `${Math.min(96, Math.max(4, ((Number(value) - 15) / 25) * 100))}%` }} /></div><div className="scale-labels"><span>{text.low}</span><span>{text.reference}</span><span>{text.high}</span></div></div> : <div className="stress-bars" role="img" aria-label={`${language === 'en' ? 'Stress level' : 'Nivel de estrés'}: ${value}`}>{Array.from({ length: 12 }, (_, index) => <i className={index < level * 3 ? 'filled' : ''} key={index} />)}</div>}</article>;
+  return <article className={`metric-card ${tone === 'blue' ? 'bmi-card' : tone === 'green' ? 'stress-card' : 'heart-card'}`}><div className="metric-top"><span className={`metric-icon ${tone === 'blue' ? 'bmi-icon' : tone === 'green' ? 'stress-icon' : ''}`}><Icon name={icon} size={16} /></span><span className="metric-label">{label}</span><span className="metric-menu" aria-hidden="true"><Icon name="more" size={15} /></span></div><div className="metric-value"><strong>{value}</strong>{unit && <span>{unit}</span>}</div><div className="metric-bottom"><span className="metric-status good"><i />{status}</span><span className="metric-context">{detail}</span></div>{visual === 'sparkline' ? <div className="sparkline" role="img" aria-label={`${label} trend`}><svg viewBox="0 0 300 36" preserveAspectRatio="none"><path d={path} /></svg></div> : visual === 'bmi' ? <div className="bmi-scale" aria-label={language === 'en' ? 'Visual body mass index scale' : 'Escala visual del índice de masa corporal'}><div className="scale-bar"><span style={{ left: `${Math.min(96, Math.max(4, ((Number(value) - 15) / 25) * 100))}%` }} /></div><div className="scale-labels"><span>{text.low}</span><span>{text.reference}</span><span>{text.high}</span></div></div> : <div className="stress-bars" role="img" aria-label={`${language === 'en' ? 'Stress level' : 'Nivel de estrés'}: ${value}`}>{Array.from({ length: 12 }, (_, index) => <i className={index < level * 3 ? 'filled' : ''} key={index} />)}</div>}</article>;
 }
 
 export function ModuleState({ children = 'PENDIENTE DE INTEGRACIÓN' }) {
@@ -26,7 +27,7 @@ export function ModuleState({ children = 'PENDIENTE DE INTEGRACIÓN' }) {
 export function VoiceButton({ listening, onClick, label }) {
   const { language } = useLanguage();
   const text = copy[language].voice;
-  return <button className={`voice-button${listening ? ' listening' : ''}`} type="button" onClick={onClick} aria-label={listening ? text.stop : label || text.dictate} title={listening ? text.stop : label || text.dictate}><span aria-hidden="true">{listening ? '■' : <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4m-4 0h8"/></svg>}</span></button>;
+  return <button className={`voice-button${listening ? ' listening' : ''}`} type="button" onClick={onClick} aria-label={listening ? text.stop : label || text.dictate} title={listening ? text.stop : label || text.dictate}>{listening ? <span className="voice-recording-mark" aria-hidden="true" /> : <Icon name="microphone" size={15} />}</button>;
 }
 
 export function AstronautAvatar({ className = '', label = 'Astronaut avatar' }) {
@@ -34,5 +35,5 @@ export function AstronautAvatar({ className = '', label = 'Astronaut avatar' }) 
 }
 
 export function QuickLink({ to, icon, title, description }) {
-  return <Link className="quick-link-card" to={to}><span className="quick-link-icon">{icon}</span><span className="quick-link-copy"><strong>{title}</strong><small>{description}</small></span><span className="quick-link-arrow">→</span></Link>;
+  return <Link className="quick-link-card" to={to}><span className="quick-link-icon"><Icon name={icon} size={16} /></span><span className="quick-link-copy"><strong>{title}</strong><small>{description}</small></span><span className="quick-link-arrow"><Icon name="arrowRight" size={15} /></span></Link>;
 }
