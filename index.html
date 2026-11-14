@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#061322" />
+  <meta name="description" content="AIRSTARK · Registro y visualización de indicadores de salud para misiones espaciales." />
+  <link rel="icon" type="image/jpeg" href="assets/airstark-logo.jpg" />
+  <title>AIRSTARK · Salud de misión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#inicio" aria-label="AIRSTARK, inicio">
+        <img class="brand-logo" src="assets/airstark-logo.jpg" alt="" />
+        <span class="brand-name">AIRSTARK<span>FOR ASTRONAUTS</span></span>
+      </a>
+      <div class="nav-label">CENTRO DE MISIÓN</div>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a class="nav-link active" href="#inicio"><span>◫</span> Resumen de salud</a>
+        <a class="nav-link" href="#indicadores"><span>⌁</span> Indicadores</a>
+        <a class="nav-link" href="#registro"><span>＋</span> Nuevo registro</a>
+        <a class="nav-link" href="#historial"><span>◷</span> Historial</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="mission-card"><span class="live-dot"></span><div><small>ESTADO DE MISIÓN</small><strong>Simulación activa</strong></div><span class="mission-orbit">✳</span></div>
+      <div class="sidebar-foot"><span class="avatar">AC</span><span class="crew"><strong>Alex Crew</strong><small>Tripulación · A-01</small></span><span class="more">···</span></div>
+    </aside>
+
+    <main class="main-content" id="inicio">
+      <header class="topbar"><button class="menu-button" id="menuButton" aria-label="Abrir menú">☰</button><div class="breadcrumb">AIRSTARK <span>/</span> <b>Resumen de salud</b></div><div class="top-actions"><span class="mission-pill"><i></i> MISIÓN DEMO</span><a class="space-apps-mark" href="https://www.spaceappschallenge.org/" target="_blank" rel="noreferrer" aria-label="NASA Space Apps Challenge"><img src="https://assets.spaceappschallenge.org/media/images/Space_Apps_Logo_Color_and_White.width-440.jpegquality-60.png" alt="NASA Space Apps Challenge" /></a><button class="icon-button" aria-label="Notificaciones">♧<span class="notification-dot"></span></button><span class="top-avatar">AC</span></div></header>
+
+      <section class="welcome-row"><div><div class="eyebrow"><span class="eyebrow-line"></span> SISTEMA DE MONITOREO DE TRIPULACIÓN</div><h1>Tu salud, <span>en órbita.</span></h1><p class="welcome-copy">Una lectura clara de tus indicadores para acompañarte durante la misión.</p></div><div class="date-card"><span class="date-icon">◷</span><div><small>REGISTRO LOCAL</small><strong id="todayDate">14 NOV 2026</strong></div></div></section>
+
+      <section class="status-banner"><div class="status-icon">✦</div><div class="status-copy"><strong>Panel de demostración</strong><span>Los valores visibles son datos simulados. Importa un CSV o registra una medición para empezar.</span></div><span class="demo-tag"><i></i> DATOS MOCK</span></section>
+
+      <section class="metrics-section" id="indicadores"><div class="section-heading"><div><span class="section-kicker">LECTURA RÁPIDA</span><h2>Indicadores principales</h2></div><span class="updated-label"><span class="live-dot"></span> <span id="dataSourceLabel">Muestra de demostración</span></span></div>
+        <div class="metrics-grid">
+          <article class="metric-card heart-card"><div class="metric-top"><span class="metric-icon heart-icon">♡</span><span class="metric-label">RITMO CARDÍACO</span><span class="metric-menu">···</span></div><div class="metric-value"><strong id="heartValue">72</strong><span>bpm</span></div><div class="metric-bottom"><span class="metric-status good"><i></i><span id="heartStatus">Dato de muestra</span></span><span class="metric-context">Lectura más reciente</span></div><div class="sparkline heart-spark"><svg viewBox="0 0 200 42" preserveAspectRatio="none" aria-label="Tendencia ilustrativa de frecuencia cardíaca"><path d="M0 28h24l7-2 7 1 7-17 6 29 8-19 7 8h22l8-2 6 2 7-13 7 18 7-15 7 9h28l7-2 7 1 6-11 8 15 7-12 9 10H200"/></svg></div></article>
+          <article class="metric-card bmi-card"><div class="metric-top"><span class="metric-icon bmi-icon">↗</span><span class="metric-label">ÍNDICE DE MASA CORPORAL</span><span class="metric-menu">···</span></div><div class="metric-value"><strong id="bmiValue">22.4</strong><span>IMC</span></div><div class="metric-bottom"><span class="metric-status neutral"><i></i><span id="bmiStatus">Dato de muestra</span></span><span class="metric-context">Calculado de peso y talla</span></div><div class="bmi-scale"><div class="scale-bar"><span></span></div><div class="scale-labels"><span>BAJO</span><span>REFERENCIA</span><span>ALTO</span></div></div></article>
+          <article class="metric-card stress-card"><div class="metric-top"><span class="metric-icon stress-icon">⌁</span><span class="metric-label">NIVEL DE ESTRÉS</span><span class="metric-menu">···</span></div><div class="metric-value"><strong id="stressValue">Bajo</strong></div><div class="metric-bottom"><span class="metric-status good"><i></i><span id="stressStatus">Dato de muestra</span></span><span class="metric-context">Autorreporte de bienestar</span></div><div class="stress-bars" aria-hidden="true"><i class="filled"></i><i class="filled"></i><i class="filled"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+        </div>
+      </section>
+
+      <section class="workspace-grid"><article class="panel csv-panel"><div class="panel-heading"><div><span class="section-kicker">SINCRONIZACIÓN</span><h2>Datos del smartwatch</h2></div><span class="watch-icon">⌚</span></div><p class="panel-description">Carga una exportación CSV del reloj para mostrar sus indicadores aquí.</p><div class="upload-box" id="dropZone"><div class="upload-icon">↑</div><strong>Arrastra tu archivo aquí</strong><span>o selecciónalo desde tu dispositivo</span><label class="file-button" for="csvInput">Seleccionar archivo CSV</label><input type="file" id="csvInput" accept=".csv,text/csv" /><small>CSV · máx. 10 MB</small></div><div class="csv-info"><span class="info-icon">i</span><span>Columnas reconocidas: frecuencia cardíaca, IMC y nivel de estrés.</span></div><div id="csvMessage" class="csv-message" role="status" aria-live="polite"></div></article>
+
+      <article class="panel trend-panel"><div class="panel-heading"><div><span class="section-kicker">TENDENCIA</span><h2>Frecuencia cardíaca</h2></div><span class="chart-unit">bpm <span>·</span> 7 días</span></div><div class="chart-summary"><strong id="chartLatest">72</strong><span>bpm</span><span class="chart-change">LECTURA DE MUESTRA</span></div><div class="chart-wrap"><div class="chart-y-labels"><span>100</span><span>80</span><span>60</span></div><div class="chart"><div class="chart-gridlines"><i></i><i></i><i></i><i></i></div><svg id="trendChart" viewBox="0 0 520 145" preserveAspectRatio="none" role="img" aria-label="Gráfico de tendencia cardíaca de los últimos siete días"><defs><linearGradient id="areaFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#4fd7f2" stop-opacity=".20"/><stop offset="100%" stop-color="#4fd7f2" stop-opacity="0"/></linearGradient></defs><path class="chart-area" d="M0,80 C24,77 40,88 65,74 S100,60 130,70 S165,91 195,67 S225,62 260,69 S300,50 325,58 S365,79 390,56 S420,57 455,48 S490,54 520,35 L520,145 L0,145Z"/><path class="chart-line" d="M0,80 C24,77 40,88 65,74 S100,60 130,70 S165,91 195,67 S225,62 260,69 S300,50 325,58 S365,79 390,56 S420,57 455,48 S490,54 520,35"/><circle class="chart-point" cx="520" cy="35" r="4"/></svg><div class="chart-x-labels"><span>08 NOV</span><span>09 NOV</span><span>10 NOV</span><span>11 NOV</span><span>12 NOV</span><span>13 NOV</span><span>14 NOV</span></div></div></div><div class="chart-footer"><span><i class="legend-dot"></i> Ritmo cardíaco</span><span>Historial de demostración</span></div></article></section>
+
+      <section class="panel form-panel" id="registro"><div class="form-heading"><div><span class="section-kicker">CHECK-IN DE TRIPULACIÓN</span><h2>Registro de salud</h2><p>Completa esta evaluación para guardar una nueva lectura en tu historial.</p></div><div class="step-indicator"><span class="step-dot"></span> <span>REGISTRO MANUAL</span></div></div>
+        <form id="healthForm">
+          <div class="form-section-title"><span class="form-section-number">01</span><div><strong>Indicadores físicos</strong><small>Ingresa los datos de tus mediciones actuales.</small></div></div>
+          <div class="form-grid">
+            <label class="field"><span>Frecuencia cardíaca <em>*</em></span><div class="input-wrap"><input name="heartRate" type="number" min="30" max="250" placeholder="Ej. 72" required /><span class="input-unit">bpm</span></div><small>Medida por el smartwatch o manualmente.</small></label>
+            <label class="field"><span>Presión arterial <em>*</em></span><div class="input-wrap"><input name="bloodPressure" type="text" inputmode="numeric" pattern="\d{2,3}\s*\/\s*\d{2,3}" placeholder="Ej. 120/80" required /><span class="input-unit">mmHg</span></div><small>Registra sistólica / diastólica.</small></label>
+            <label class="field"><span>Glucosa en sangre <em>*</em></span><div class="input-wrap"><input name="glucose" type="number" min="20" max="700" step="0.1" placeholder="Ej. 95" required /><span class="input-unit">mg/dL</span></div><small>Indica tu medición más reciente.</small></label>
+            <label class="field"><span>Peso <em>*</em></span><div class="input-wrap"><input name="weight" type="number" min="20" max="350" step="0.1" placeholder="Ej. 68.5" required /><span class="input-unit">kg</span></div><small>Se usará para calcular el IMC.</small></label>
+            <label class="field"><span>Estatura <em>*</em></span><div class="input-wrap"><input name="height" type="number" min="100" max="250" step="0.1" placeholder="Ej. 172" required /><span class="input-unit">cm</span></div><small>Ingresa la estatura en centímetros.</small></label>
+            <label class="field"><span>Tipo de diabetes <em>*</em></span><div class="select-wrap"><select name="diabetes" required><option value="" disabled selected>Selecciona una opción</option><option value="tipo1">Tipo I</option><option value="tipo2">Tipo II</option><option value="ninguna">No presenta</option></select><span class="select-arrow">⌄</span></div><small>Esta información es confidencial.</small></label>
+          </div>
+          <div class="form-section-title mental-title"><span class="form-section-number">02</span><div><strong>Bienestar y estrés</strong><small>Un registro honesto ayuda a dar contexto a tus indicadores.</small></div></div>
+          <fieldset class="stress-field"><legend>¿Cómo describirías tu nivel de estrés? <em>*</em></legend><div class="radio-options"><label class="radio-card"><input type="radio" name="stress" value="Levemente estresado" required /><span class="radio-visual"><i></i></span><span><strong>Levemente estresado</strong><small>Me siento en calma la mayor parte del tiempo.</small></span><span class="stress-face">☺</span></label><label class="radio-card"><input type="radio" name="stress" value="Regularmente estresado" /><span class="radio-visual"><i></i></span><span><strong>Regularmente estresado</strong><small>He notado algo de tensión o preocupación.</small></span><span class="stress-face">◡</span></label><label class="radio-card"><input type="radio" name="stress" value="Altamente estresado" /><span class="radio-visual"><i></i></span><span><strong>Altamente estresado</strong><small>El estrés está afectando cómo me siento.</small></span><span class="stress-face">☹</span></label></div></fieldset>
+          <label class="field notes-field"><span>Nota para tu registro <small>(opcional)</small></span><textarea name="notes" rows="3" placeholder="¿Hay algo más que quieras dejar anotado sobre cómo te sientes?"></textarea></label>
+          <div class="form-footer"><span class="privacy-note"><span>▣</span> Tus datos se guardan localmente en este dispositivo.</span><button class="submit-button" type="submit">Guardar registro <span>→</span></button></div>
+          <div id="formMessage" class="form-message" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section class="panel history-panel" id="historial"><div class="panel-heading history-heading"><div><span class="section-kicker">ACTIVIDAD RECIENTE</span><h2>Historial de mediciones</h2></div><button class="export-button" id="exportButton">↓ <span>Exportar CSV</span></button></div><div class="table-scroll"><table><thead><tr><th>FECHA / HORA</th><th>RITMO CARDÍACO</th><th>PRESIÓN ARTERIAL</th><th>GLUCOSA</th><th>IMC</th><th>ESTRÉS</th></tr></thead><tbody id="historyBody"></tbody></table></div><div class="empty-history" id="emptyHistory" hidden>Todavía no hay registros guardados. Completa tu check-in para comenzar.</div></section>
+      <footer class="footer"><span>AIRSTARK <b>·</b> Tu salud, nuestra misión.</span><span>PROTOTIPO DE HACKATÓN <b>·</b> DATOS DE DEMOSTRACIÓN</span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
