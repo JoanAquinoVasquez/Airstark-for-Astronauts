@@ -22,7 +22,11 @@ export function saveRecords(records) {
 }
 
 export function getCurrentRecords() {
-  return [...getSavedRecords(), ...DEMO_RECORDS].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const saved = getSavedRecords();
+  if (saved.length > 0) {
+    return [...saved].sort((a, b) => new Date(b.date) - new Date(a.date));
+  }
+  return [...DEMO_RECORDS].sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
 export function getLatestRecord() {
@@ -35,17 +39,38 @@ export function formatDate(value, options = {}, locale = 'es-PE') {
 }
 
 export function stressLabel(value) {
-  const text = String(value || '').toLowerCase();
+  if (value == null || value === '') return '—';
+  const rawNum = String(value).trim().replace(',', '.').replace('%', '');
+  const num = Number(rawNum);
+  if (rawNum !== '' && Number.isFinite(num)) {
+    if (num <= 33) return 'Bajo';
+    if (num <= 66) return 'Moderado';
+    return 'Alto';
+  }
+  const text = String(value).toLowerCase();
   if (/alto|altamente|high|severo/.test(text)) return 'Alto';
   if (/regular|moderado|medium|moderate/.test(text)) return 'Moderado';
   if (/bajo|low|leve|mild/.test(text)) return 'Bajo';
   return value || '—';
 }
 
-export function localizeStress(value, language = 'es') {
+export function localizeStress(value, language = 'es', score = null) {
   const normalized = stressLabel(value);
-  if (language === 'en') return ({ Bajo: 'Low', Moderado: 'Moderate', Alto: 'Highly stressed' }[normalized] || value || '—');
-  return ({ Bajo: 'Bajo', Moderado: 'Moderado', Alto: 'Altamente estresado' }[normalized] || value || '—');
+  let numScore = score;
+  if (numScore == null) {
+    const rawNum = String(value).trim().replace(',', '.').replace('%', '');
+    const num = Number(rawNum);
+    if (rawNum !== '' && Number.isFinite(num)) numScore = num;
+  }
+  const scoreSuffix = numScore != null && Number.isFinite(Number(numScore)) ? ` (${numScore}%)` : '';
+  if (language === 'en') {
+    const map = { Bajo: 'Low', Moderado: 'Moderate', Alto: 'Highly stressed' };
+    const label = map[normalized] || normalized;
+    return `${label}${scoreSuffix}`;
+  }
+  const map = { Bajo: 'Bajo', Moderado: 'Moderado', Alto: 'Alto' };
+  const label = map[normalized] || normalized;
+  return `${label}${scoreSuffix}`;
 }
 
 function parseCSV(text) {
@@ -74,6 +99,10 @@ function headerKind(header) {
   if (/^bpm$/.test(normalized) || /heart|card|pulso|ritmo|frecuencia/.test(normalized)) return 'heartRate';
   if (/bmi|imc|indice masa/.test(normalized)) return 'bmi';
   if (/stress|estres/.test(normalized)) return 'stress';
+  if (/peso|weight/.test(normalized)) return 'weight';
+  if (/altura|height|estatura|talla/.test(normalized)) return 'heightCm';
+  if (/grasa|fat|body fat/.test(normalized)) return 'bodyFat';
+  if (/trama|hex|raw hex/.test(normalized)) return 'rawHex';
   if (/date|time|fecha|hora|timestamp/.test(normalized)) return 'date';
   if (/zona|zone/.test(normalized)) return 'zone';
   if (/contacto|contact/.test(normalized)) return 'sensorContact';
@@ -88,24 +117,43 @@ export async function readSmartwatchCsv(file) {
   if (!/\.csv$/i.test(file.name)) throw new Error('Selecciona un archivo con extensión .csv.');
   const rows = parseCSV((await file.text()).replace(/^\uFEFF/, ''));
   const headers = rows[0].map(headerKind);
-  if (!headers.includes('heartRate') && !headers.includes('bmi') && !headers.includes('stress')) {
-    throw new Error('No reconocí las columnas del CSV. Se requiere BPM, frecuencia cardíaca, IMC o estrés.');
+  if (!headers.includes('heartRate') && !headers.includes('bmi') && !headers.includes('stress') && !headers.includes('weight')) {
+    throw new Error('No reconocí las columnas del CSV. Se requiere BPM, frecuencia cardíaca, IMC, peso o estrés.');
   }
   const records = []; let ignoredZeroReadings = 0;
   for (const cells of rows.slice(1)) {
     const record = { source: 'csv', sourceFile: file.name, date: new Date().toISOString() };
     headers.forEach((kind, index) => {
-      if (!kind || !cells[index]) return;
+      const cellValue = cells[index];
+      if (!kind || cellValue === undefined || cellValue === '') return;
       if (kind === 'date') {
-        const parsedDate = new Date(cells[index]);
+        const parsedDate = new Date(cellValue);
         if (!Number.isNaN(parsedDate.valueOf())) record.date = parsedDate.toISOString();
-      } else if (kind === 'heartRate' || kind === 'bmi') {
-        const number = Number(cells[index].replace(',', '.'));
+      } else if (['heartRate', 'bmi', 'weight', 'heightCm', 'bodyFat', 'energy'].includes(kind)) {
+        const number = Number(cellValue.replace(',', '.'));
         if (Number.isFinite(number)) record[kind] = number;
-      } else record[kind] = cells[index];
+      } else if (kind === 'stress') {
+        const raw = cellValue.trim();
+        const num = Number(raw.replace(',', '.').replace('%', ''));
+        if (Number.isFinite(num) && raw !== '') {
+          record.stressScore = num;
+          record.stress = num <= 33 ? 'Bajo' : num <= 66 ? 'Moderado' : 'Alto';
+        } else {
+          record.stress = raw;
+        }
+      } else {
+        record[kind] = cellValue;
+      }
     });
+
+    // Auto-cálculo de IMC si tenemos peso y estatura y no vino IMC
+    if (!record.bmi && record.weight && record.heightCm) {
+      const heightM = record.heightCm / 100;
+      record.bmi = Number((record.weight / (heightM * heightM)).toFixed(1));
+    }
+
     if (record.heartRate === 0) { ignoredZeroReadings += 1; continue; }
-    if (record.heartRate || record.bmi || record.stress) records.push(record);
+    if (record.heartRate || record.bmi || record.stress || record.weight) records.push(record);
   }
   if (!records.length) throw new Error('No encontré filas con mediciones válidas.');
   return { records, ignoredZeroReadings };
@@ -173,9 +221,23 @@ export async function askAgent(question, language = 'en') {
 }
 
 export function exportRecords(records) {
-  const columns = ['fecha', 'ritmo_cardiaco_bpm', 'presion_arterial_mmhg', 'glucosa_mg_dl', 'peso_kg', 'estatura_cm', 'imc', 'estres', 'diabetes', 'notas', 'origen'];
+  const columns = ['fecha', 'ritmo_cardiaco_bpm', 'presion_arterial_mmhg', 'glucosa_mg_dl', 'peso_kg', 'estatura_cm', 'imc', 'grasa_corporal_pct', 'estres', 'trama_hex', 'diabetes', 'notas', 'origen'];
   const quote = (value) => `"${String(value ?? '').replaceAll('"', '""')}"`;
-  const lines = records.map((record) => [record.date, record.heartRate, record.pressure, record.glucose, record.weight, record.heightCm, record.bmi, record.stress, record.diabetes, record.notes, record.source].map(quote).join(','));
+  const lines = records.map((record) => [
+    record.date,
+    record.heartRate,
+    record.pressure,
+    record.glucose,
+    record.weight,
+    record.heightCm,
+    record.bmi,
+    record.bodyFat,
+    record.stressScore != null ? record.stressScore : record.stress,
+    record.rawHex,
+    record.diabetes,
+    record.notes,
+    record.source,
+  ].map(quote).join(','));
   const blob = new Blob(['\uFEFF', columns.join(','), '\r\n', lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);

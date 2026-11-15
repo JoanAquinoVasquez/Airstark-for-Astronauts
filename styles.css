@@ -1317,3 +1317,1366 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 }
 
 
+
+
+
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIVE MONITOR 3-COLUMN REVOLUTION (ECG Left · 3D Heart Center · Copilot+Hist Right)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.live-monitor-container {
+  width: 100%;
+  max-width: 1720px;
+  margin: 0 auto;
+  padding: 16px 20px 32px;
+  box-sizing: border-box;
+}
+
+.live-monitor-grid {
+  display: grid;
+  grid-template-columns: 330px minmax(420px, 1fr) 340px;
+  gap: 16px;
+  min-height: calc(100vh - 130px);
+  align-items: stretch;
+}
+
+.monitor-col-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Header pill */
+.monitor-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.live-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #2feaa8;
+}
+
+.live-status-pill i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2feaa8;
+  box-shadow: 0 0 8px #2feaa8;
+  animation: ecg-pulse-dot 1.8s infinite;
+}
+
+@keyframes ecg-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(.85); }
+}
+
+/* ── LEFT COLUMN: ECG & RHYTHM BOX ───────────────────────── */
+.ecg-rhythm-box {
+  background: rgba(11, 25, 33, 0.85);
+  border: 1px solid rgba(47, 234, 168, 0.25);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.ecg-rhythm-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+}
+
+.ecg-field-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #a5b5c9;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.ecg-field-title svg {
+  color: #2feaa8;
+}
+
+.ecg-bpm-readout {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: #2feaa8;
+}
+
+.ecg-bpm-readout output {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-shadow: 0 0 12px rgba(47, 234, 168, 0.35);
+}
+
+.ecg-bpm-readout span {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #8dc9b9;
+}
+
+/* Trace */
+.ecg-trace-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ecg-trace-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.pulse-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.pulse-status-badge.running {
+  background: rgba(47, 234, 168, 0.15);
+  color: #2feaa8;
+}
+
+.pulse-status-badge.running i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #2feaa8;
+  animation: ecg-pulse-dot 1.2s infinite;
+}
+
+.pulse-status-badge.paused {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.pulse-status-badge.paused i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #888;
+}
+
+.ecg-svg-wrap {
+  width: 100%;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(47, 234, 168, 0.3);
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+}
+
+.monitor-ecg-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.pulse-cursor {
+  filter: drop-shadow(0 0 5px #2feaa8);
+}
+
+/* Slider & presets */
+.ecg-adjust-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.ecg-slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #a5b5c9;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.ecg-slider-header strong {
+  font-family: var(--font-mono, monospace);
+  color: #2feaa8;
+}
+
+.ecg-slider-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 24px;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  font-family: var(--font-mono, monospace);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ecg-slider-row input[type='range'] {
+  width: 100%;
+  height: 14px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ecg-slider-row input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #2feaa8 var(--range, 50%), #243545 var(--range, 50%));
+}
+
+.ecg-slider-row input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2feaa8;
+  margin-top: -5px;
+  box-shadow: 0 0 6px rgba(47, 234, 168, 0.7);
+  transition: transform .15s;
+}
+
+.ecg-slider-row input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.ecg-presets-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ecg-preset-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #b7c6d8;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.ecg-preset-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(47, 234, 168, 0.5);
+}
+
+.ecg-preset-btn.active {
+  background: rgba(47, 234, 168, 0.18);
+  border-color: #2feaa8;
+  color: #2feaa8;
+}
+
+.ecg-play-toggle {
+  flex: 1.5;
+  background: rgba(47, 234, 168, 0.15);
+  border: 1px solid rgba(47, 234, 168, 0.4);
+  color: #2feaa8;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.ecg-play-toggle:hover {
+  background: rgba(47, 234, 168, 0.28);
+}
+
+/* Astronaut Vitals Card */
+.astronaut-vitals-card,
+.space-scenarios-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vitals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.vitals-device-tag {
+  font-size: 9px;
+  color: #6aa9ee;
+  background: rgba(106, 169, 238, 0.12);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.vitals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.vitals-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vitals-item small {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.vitals-item strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.vitals-item strong small {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  text-transform: none;
+}
+
+/* Scenarios */
+.space-scenarios-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scenario-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  padding: 6px 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: left;
+}
+
+.scenario-pill:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.scenario-pill.active {
+  border-color: rgba(47, 234, 168, 0.5);
+  background: rgba(47, 234, 168, 0.08);
+  color: #fff;
+}
+
+.scenario-pill i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.scenario-pill span {
+  flex: 1;
+}
+
+.scenario-pill small {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  opacity: .75;
+}
+
+/* ── CENTER COLUMN: 3D HEART STAGE ───────────────────────── */
+.monitor-heart-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.monitor-heart-stage-wrap {
+  flex: 1;
+  position: relative;
+  background: #07090b;
+  border: 1px solid rgba(47, 234, 168, 0.25);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+  min-height: 580px;
+  display: flex;
+}
+
+.monitor-heart-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  flex: 1;
+  min-height: 580px;
+}
+
+.monitor-heart-loading {
+  position: absolute;
+  inset: 0;
+  background: #07090b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #b7c6d8;
+  font-size: 13px;
+  z-index: 2;
+}
+
+.monitor-heart-loading small {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+
+/* ── RIGHT COLUMN: COPILOT + HISTORY ─────────────────────── */
+.monitor-right-col {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 12px;
+}
+
+.monitor-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.monitor-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #b7c6d8;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.monitor-card-title svg {
+  color: #9d7bff;
+}
+
+.copilot-live-tag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  color: #2feaa8;
+}
+
+/* Assistant card */
+.monitor-assistant-card {
+  flex: 1.4;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(157, 123, 255, 0.05);
+  border: 1px solid rgba(157, 123, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.monitor-chat-window {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(157, 123, 255, 0.3) transparent;
+}
+
+.monitor-chat-msg {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.monitor-chat-msg.user {
+  flex-direction: row-reverse;
+}
+
+.monitor-chat-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(157, 123, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #c4b5fd;
+  margin-top: 2px;
+}
+
+.monitor-chat-bubble {
+  font-size: 11.5px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 92%;
+}
+
+.monitor-chat-bubble.assistant {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
+  border-radius: 2px 8px 8px 8px;
+}
+
+.monitor-chat-bubble.user {
+  background: rgba(157, 123, 255, 0.35);
+  color: #fff;
+  border-radius: 8px 2px 8px 8px;
+}
+
+.monitor-chat-form {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  flex-shrink: 0;
+}
+
+.monitor-chat-form input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11px;
+  padding: 6px 10px;
+  outline: none;
+  min-width: 0;
+}
+
+.monitor-chat-form input:focus {
+  border-color: rgba(157, 123, 255, 0.6);
+}
+
+.monitor-chat-form button {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: #7c4dff;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .2s;
+}
+
+.monitor-chat-form button:hover:not(:disabled) {
+  background: #9d7bff;
+}
+
+.monitor-chat-form button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+/* History card */
+.monitor-history-card {
+  flex: 0.9;
+  min-height: 190px;
+  max-height: 270px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.monitor-export-pill {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  background: rgba(47, 234, 168, 0.12);
+  border: 1px solid rgba(47, 234, 168, 0.35);
+  border-radius: 12px;
+  color: #2feaa8;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.monitor-export-pill:hover {
+  background: rgba(47, 234, 168, 0.25);
+}
+
+.monitor-history-scroll {
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.monitor-history-empty {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+  padding: 24px 0;
+  margin: 0;
+}
+
+.monitor-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+
+.monitor-history-table th {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  padding: 4px 4px 6px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.monitor-history-table td {
+  padding: 5px 4px;
+  color: rgba(255, 255, 255, 0.75);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.history-bpm-cell strong {
+  color: #2feaa8;
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+}
+
+/* ── Responsive breakpoints ──────────────────────────────── */
+@media (max-width: 1240px) {
+  .live-monitor-grid {
+    grid-template-columns: 290px 1fr 300px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 980px) {
+  .live-monitor-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .monitor-heart-stage-wrap,
+  .monitor-heart-iframe {
+    min-height: 420px;
+  }
+
+  .monitor-right-col {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .monitor-assistant-card,
+  .monitor-history-card {
+    flex: 1 1 300px;
+  }
+}
+
+
+/* BLE raw hex badge */
+.hex-telemetry-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  background: rgba(106, 169, 238, 0.12);
+  border: 1px solid rgba(106, 169, 238, 0.3);
+  color: #6aa9ee;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: .05em;
+}
+
+
+/* ── Live Monitor Voice & Call Controls ─────────────────── */
+.monitor-call-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.monitor-call-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(47, 234, 168, 0.14);
+  border: 1px solid rgba(47, 234, 168, 0.4);
+  color: #2feaa8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  padding: 3px 9px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.monitor-call-toggle:hover:not(:disabled) {
+  background: rgba(47, 234, 168, 0.26);
+  transform: translateY(-1px);
+}
+
+.monitor-call-toggle.end {
+  background: rgba(255, 107, 107, 0.16);
+  border-color: rgba(255, 107, 107, 0.5);
+  color: #ff6b6b;
+  animation: call-pulse-btn 1.5s infinite;
+}
+
+.monitor-call-toggle.end:hover {
+  background: rgba(255, 107, 107, 0.28);
+}
+
+@keyframes call-pulse-btn {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(255, 107, 107, 0); }
+}
+
+.monitor-call-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(47, 234, 168, 0.12);
+  border: 1px solid rgba(47, 234, 168, 0.3);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #2feaa8;
+  margin-bottom: 6px;
+  animation: fade-in-down 0.25s ease;
+}
+
+.monitor-assistant-card.call-active {
+  border-color: rgba(47, 234, 168, 0.4);
+  box-shadow: 0 4px 24px rgba(47, 234, 168, 0.15);
+}
+
+.monitor-speak-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.6);
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin-left: 8px;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: all .15s;
+}
+
+.monitor-speak-btn:hover {
+  background: rgba(157, 123, 255, 0.3);
+  color: #fff;
+  border-color: rgba(157, 123, 255, 0.6);
+}
+
+.monitor-dictate-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+
+.monitor-dictate-btn:hover:not(:disabled) {
+  background: rgba(157, 123, 255, 0.3);
+  color: #fff;
+  border-color: rgba(157, 123, 255, 0.5);
+}
+
+.monitor-dictate-btn.active {
+  background: rgba(255, 107, 107, 0.25);
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+  animation: call-pulse-btn 1.2s infinite;
+}
+
+.monitor-voice-feedback {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #2feaa8;
+  padding: 3px 6px;
+  background: rgba(47, 234, 168, 0.08);
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+
+/* ── Live Monitor BLE & CSV Replay Toolbar ────────────────── */
+.ble-connect-toolbar {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+
+.ble-connect-btn {
+  flex: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(47, 234, 168, 0.15);
+  border: 1px solid rgba(47, 234, 168, 0.4);
+  color: #2feaa8;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.ble-connect-btn:hover {
+  background: rgba(47, 234, 168, 0.28);
+  border-color: #2feaa8;
+}
+
+.ble-connect-btn.connected {
+  background: rgba(255, 107, 107, 0.16);
+  border-color: rgba(255, 107, 107, 0.4);
+  color: #ff6b6b;
+}
+
+.ble-connect-btn.connecting {
+  background: rgba(255, 217, 61, 0.18);
+  border-color: #ffd93d;
+  color: #ffd93d;
+  animation: call-pulse-btn 1.2s infinite;
+}
+
+.csv-replay-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(106, 169, 238, 0.14);
+  border: 1px solid rgba(106, 169, 238, 0.35);
+  color: #6aa9ee;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.csv-replay-btn:hover {
+  background: rgba(106, 169, 238, 0.26);
+  border-color: #6aa9ee;
+}
+
+.csv-replay-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(106, 169, 238, 0.12);
+  border: 1px solid rgba(106, 169, 238, 0.25);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #6aa9ee;
+  margin: 2px 0 6px;
+}
+
+.csv-replay-status button {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 4px;
+}
+
+.csv-replay-status button:hover {
+  color: #ff6b6b;
+}
+
+.ble-error-banner {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: #ff6b6b;
+  font-size: 10px;
+  margin: 4px 0;
+}
+
+/* ── Dashboard trend additions ── */
+.dashboard-trend-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-trend-legend {
+  display: flex;
+  gap: 14px;
+  padding: 12px 0 2px 25px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(139, 181, 208, 0.08);
+  margin-top: 10px;
+}
+
+.trend-legend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9.5px;
+  color: #9ab4c7;
+}
+
+/* ── Health Data Modern Cards & Notifications ── */
+.hd-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+@media (max-width: 1100px) {
+  .hd-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .hd-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hd-metric-card {
+  border: 1px solid var(--border);
+  background: linear-gradient(130deg, rgba(14, 33, 51, 0.96), rgba(8, 23, 37, 0.97));
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.hd-metric-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(84, 215, 238, 0.3);
+}
+
+.hd-metric-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.hd-metric-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(84, 215, 238, 0.08);
+}
+
+.hd-metric-label {
+  font: 500 8.5px var(--mono);
+  letter-spacing: 0.08em;
+  color: #a0b5c6;
+  text-transform: uppercase;
+}
+
+.hd-metric-value {
+  font: 500 28px var(--display);
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+  margin-bottom: 3px;
+}
+
+.hd-metric-unit {
+  font: 400 11px var(--mono);
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
+.hd-metric-sub {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.hd-notifications {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.hd-notif-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: 600 9px var(--mono);
+  color: #8db5c8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hd-notif-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+  border-radius: 6px;
+  background: rgba(8, 23, 37, 0.65);
+  border: 1px solid rgba(139, 181, 208, 0.12);
+  border-left: 3px solid #54d7ee;
+  font-size: 11px;
+  color: #d8e8f2;
+  animation: bannerIn 0.3s ease both;
+}
+
+.hd-notif-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #6a8296;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.hd-notif-close:hover {
+  color: #ff9f9c;
+}
+
+/* ─── Cardiovascular Evaluation Form ─────────────────────────────────────── */
+.cardio-header-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: rgba(10, 25, 41, 0.7);
+  border: 1px solid rgba(84, 215, 238, 0.18);
+  border-radius: 8px;
+  padding: 11px 16px;
+  margin-bottom: 20px;
+}
+
+.cardio-stats-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cardio-stats-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 9px var(--mono);
+  color: #54d7ee;
+  background: rgba(84, 215, 238, 0.1);
+  padding: 4px 9px;
+  border-radius: 20px;
+  border: 1px solid rgba(84, 215, 238, 0.25);
+  letter-spacing: 0.05em;
+}
+
+.cardio-stats-pill .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #54d7ee;
+  box-shadow: 0 0 6px #54d7ee;
+}
+
+.cardio-autofill-btn {
+  background: rgba(73, 221, 178, 0.12);
+  border: 1px solid rgba(73, 221, 178, 0.35);
+  border-radius: 6px;
+  color: #49ddb2;
+  font: 500 10px var(--font);
+  padding: 6px 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s ease;
+}
+
+.cardio-autofill-btn:hover {
+  background: rgba(73, 221, 178, 0.22);
+  transform: translateY(-1px);
+}
+
+.cardio-sections-nav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(139, 181, 208, 0.12);
+}
+
+.cardio-nav-pill {
+  background: rgba(13, 32, 50, 0.6);
+  border: 1px solid rgba(139, 181, 208, 0.15);
+  border-radius: 20px;
+  color: #8da4b7;
+  font: 500 9.5px var(--mono);
+  padding: 5px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cardio-nav-pill:hover,
+.cardio-nav-pill.active {
+  background: rgba(84, 215, 238, 0.15);
+  border-color: rgba(84, 215, 238, 0.4);
+  color: #e6f6fa;
+}
+
+.cardio-nav-pill.active {
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(84, 215, 238, 0.2);
+}
+
+.cardio-bool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.cardio-bool-field {
+  background: rgba(10, 24, 38, 0.55);
+  border: 1px solid rgba(139, 181, 208, 0.14);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.cardio-bool-field:hover {
+  border-color: rgba(84, 215, 238, 0.25);
+  background: rgba(13, 32, 50, 0.7);
+}
+
+.cardio-bool-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cardio-bool-question {
+  color: #d8e8f2;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.cardio-bool-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.cardio-bool-code code {
+  font: 600 8.5px var(--mono);
+  color: #7997ad;
+  background: rgba(7, 19, 33, 0.8);
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(139, 181, 208, 0.12);
+}
+
+.badge-f, .badge-d {
+  font: 700 7.5px var(--mono);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.badge-f {
+  background: rgba(157, 116, 255, 0.18);
+  color: #c4a7ff;
+  border: 1px solid rgba(157, 116, 255, 0.35);
+}
+
+.badge-d {
+  background: rgba(84, 215, 238, 0.15);
+  color: #54d7ee;
+  border: 1px solid rgba(84, 215, 238, 0.3);
+}
+
+.cardio-bool-options {
+  display: flex;
+  gap: 8px;
+}
+
+.cardio-bool-btn {
+  flex: 1;
+  background: rgba(8, 20, 32, 0.6);
+  border: 1px solid rgba(139, 181, 208, 0.2);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font: 500 10.5px var(--font);
+  color: #92a8bc;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.16s ease;
+}
+
+.cardio-bool-btn:hover {
+  background: rgba(17, 39, 61, 0.8);
+  color: #eaf4fb;
+  border-color: rgba(139, 181, 208, 0.35);
+}
+
+.cardio-bool-btn .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #475d71;
+  transition: all 0.16s ease;
+}
+
+.cardio-bool-btn.selected-yes {
+  background: rgba(240, 124, 62, 0.14);
+  border-color: rgba(240, 124, 62, 0.55);
+  color: #f79d71;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(240, 124, 62, 0.2);
+}
+
+.cardio-bool-btn.selected-yes .dot {
+  background: #f07c3e;
+  box-shadow: 0 0 7px #f07c3e;
+}
+
+.cardio-bool-btn.selected-no {
+  background: rgba(73, 221, 178, 0.12);
+  border-color: rgba(73, 221, 178, 0.45);
+  color: #49ddb2;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(73, 221, 178, 0.15);
+}
+
+.cardio-bool-btn.selected-no .dot {
+  background: #49ddb2;
+  box-shadow: 0 0 7px #49ddb2;
+}
+
+.cardio-imc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font: 600 9px var(--mono);
+  margin-top: 5px;
+}
+

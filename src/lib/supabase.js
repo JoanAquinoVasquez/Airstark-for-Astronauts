@@ -94,3 +94,88 @@ export async function saveCloudProfile(profile) {
   if (error) throw error;
   return profile;
 }
+
+export const CARDIO_STORAGE_KEY = 'airstark.cardioEvaluations.v1';
+
+export function getSavedCardioEvaluations() {
+  try {
+    return JSON.parse(localStorage.getItem(CARDIO_STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+export function saveCardioEvaluation(evalData) {
+  const existing = getSavedCardioEvaluations();
+  const next = [evalData, ...existing];
+  try {
+    localStorage.setItem(CARDIO_STORAGE_KEY, JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent('airstark-cardio-updated', { detail: next }));
+  } catch (err) {
+    console.warn('Error saving local cardio evaluation:', err);
+  }
+  return next;
+}
+
+export async function insertCardiovascularEvaluation(evalData, crewId) {
+  if (!supabase) return null;
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+  if (!sessionData.session) return null;
+
+  const { data: profile } = await supabase
+    .from('astronaut_profiles')
+    .select('crew_id')
+    .eq('crew_id', crewId)
+    .maybeSingle();
+
+  let sys = null, dia = null;
+  if (evalData.bloodPressure) {
+    const parts = String(evalData.bloodPressure).split('/');
+    if (parts.length === 2) {
+      sys = Number(parts[0].trim()) || null;
+      dia = Number(parts[1].trim()) || null;
+    }
+  }
+
+  const row = {
+    astronaut_id: profile?.crew_id || null,
+    evaluated_at: evalData.date || new Date().toISOString(),
+    sex: evalData.sex || null,
+    age: evalData.age != null && evalData.age !== '' ? Number(evalData.age) : null,
+    weight_kg: evalData.weight != null && evalData.weight !== '' ? Number(evalData.weight) : null,
+    height_cm: evalData.heightCm != null && evalData.heightCm !== '' ? Number(evalData.heightCm) : null,
+    bmi: evalData.bmi != null && evalData.bmi !== '' ? Number(evalData.bmi) : null,
+    heart_rate_bpm: evalData.heartRate != null && evalData.heartRate !== '' ? Number(evalData.heartRate) : null,
+    blood_pressure_mmhg: evalData.bloodPressure || null,
+    systolic_bp: sys,
+    diastolic_bp: dia,
+    glucose_mg_dl: evalData.glucose != null && evalData.glucose !== '' ? Number(evalData.glucose) : null,
+    tot_chol_mg_dl: evalData.totChol != null && evalData.totChol !== '' ? Number(evalData.totChol) : null,
+    hdl_c_mg_dl: evalData.hdlc != null && evalData.hdlc !== '' ? Number(evalData.hdlc) : null,
+    ldl_c_mg_dl: evalData.ldlc != null && evalData.ldlc !== '' ? Number(evalData.ldlc) : null,
+    cur_smoke: evalData.curSmoke === true || evalData.curSmoke === 'si',
+    cigs_per_day: evalData.cigsPerDay != null && evalData.cigsPerDay !== '' ? Number(evalData.cigsPerDay) : 0,
+    diabetes: evalData.diabetes === true || evalData.diabetes === 'si' || evalData.diabetes === 'tipo1' || evalData.diabetes === 'tipo2',
+    bp_meds: evalData.bpMeds === true || evalData.bpMeds === 'si',
+    prev_chd: evalData.prevChd === true || evalData.prevChd === 'si',
+    prev_ap: evalData.prevAp === true || evalData.prevAp === 'si',
+    prev_mi: evalData.prevMi === true || evalData.prevMi === 'si',
+    prev_strk: evalData.prevStrk === true || evalData.prevStrk === 'si',
+    prev_hyp: evalData.prevHyp === true || evalData.prevHyp === 'si',
+    angina: evalData.angina === true || evalData.angina === 'si',
+    any_chd: evalData.anyChd === true || evalData.anyChd === 'si',
+    stroke: evalData.stroke === true || evalData.stroke === 'si',
+    cvd: evalData.cvd === true || evalData.cvd === 'si',
+    hyperten: evalData.hyperten === true || evalData.hyperten === 'si',
+    stress_level: evalData.stress || null,
+    notes: evalData.notes || null,
+  };
+
+  const { data, error } = await supabase.from('cardiovascular_evaluations').insert([row]).select();
+  if (error) {
+    console.warn('Error insertando en cardiovascular_evaluations:', error);
+    throw error;
+  }
+  return data;
+}

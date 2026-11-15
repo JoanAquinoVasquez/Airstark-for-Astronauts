@@ -54,25 +54,6 @@ export default function DigitalTwin() {
           </div>
 
           <div className="twin-actions">
-            <div className="twin-source-toggle" role="group" aria-label="Simulator Source">
-              <button
-                type="button"
-                className={`twin-toggle-btn ${sourceMode === 'embedded' ? 'active' : ''}`}
-                onClick={() => setSourceMode('embedded')}
-                title="Cargar versión integrada en la aplicación"
-              >
-                {language === 'en' ? 'Integrated' : 'Integrado'}
-              </button>
-              <button
-                type="button"
-                className={`twin-toggle-btn ${sourceMode === 'live' ? 'active' : ''}`}
-                onClick={() => setSourceMode('live')}
-                title="Cargar desde servidor local :5173"
-              >
-                {language === 'en' ? 'Dev Server (:5173)' : 'Servidor Dev (:5173)'}
-              </button>
-            </div>
-
             <button
               type="button"
               className="twin-action-button"
@@ -82,7 +63,6 @@ export default function DigitalTwin() {
               <Icon name="cube" size={14} />
               <span>{isFullscreen ? (t.exitFullscreen || 'Salir') : (t.fullscreen || 'Pantalla completa')}</span>
             </button>
-
             <a
               href={simulatorUrl}
               target="_blank"

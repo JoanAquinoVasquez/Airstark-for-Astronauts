@@ -101,3 +101,78 @@ drop policy if exists "Users can mark their own notifications as read" on public
 create policy "Users can mark their own notifications as read"
   on public.mission_notifications for update to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- 4. Evaluación Cardiovascular Completa (Variables de Riesgo / Framingham)
+create table if not exists public.cardiovascular_evaluations (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid default auth.uid() references auth.users(id) on delete cascade,
+  astronaut_id text references public.astronaut_profiles(crew_id) on update cascade on delete set null,
+  evaluated_at timestamptz not null default now(),
+
+  -- 01. Demográficos y Biometría (F / D)
+  sex text check (sex in ('M', 'F')),          -- Sexo (F)
+  age integer,                                  -- Edad (F)
+  weight_kg numeric,                            -- Peso en kg (D)
+  height_cm numeric,                            -- Talla en cm (D)
+  bmi numeric,                                  -- IMC (D)
+
+  -- 02. Signos Vitales y Laboratorio Clínico (D)
+  heart_rate_bpm numeric,                       -- Frecuencia Cardíaca (D)
+  blood_pressure_mmhg text,                     -- Presión Arterial "120/80" (D)
+  systolic_bp numeric,                          -- Presión Sistólica (D)
+  diastolic_bp numeric,                         -- Presión Diastólica (D)
+  glucose_mg_dl numeric,                        -- Glucosa (D)
+  tot_chol_mg_dl numeric,                       -- Colesterol Total (D)
+  hdl_c_mg_dl numeric,                          -- HDLC (D)
+  ldl_c_mg_dl numeric,                          -- LDLC (D)
+
+  -- 03. Hábitos y Medicación (F / D)
+  cur_smoke boolean default false,              -- Tabaquismo actual (F)
+  cigs_per_day integer default 0,               -- Cigarros por día (D)
+  diabetes boolean default false,               -- Diabetes (F)
+  bp_meds boolean default false,                -- BPMEDS (F)
+
+  -- 04. Antecedentes Familiares (F)
+  prev_chd boolean default false,               -- PREVCHD (F)
+  prev_ap boolean default false,                -- PREVAP (F)
+  prev_mi boolean default false,                -- PREVMI (F)
+  prev_strk boolean default false,              -- PREVSTRK (F)
+  prev_hyp boolean default false,               -- PREVHYP (F)
+
+  -- 05. Historial Clínico Personal (D)
+  angina boolean default false,                 -- ANGINA (D)
+  any_chd boolean default false,                -- ANYCHD (D)
+  stroke boolean default false,                 -- STROKE (D)
+  cvd boolean default false,                    -- CVD (D)
+  hyperten boolean default false,               -- HYPERTEN (D)
+
+  -- 06. Bienestar y Observaciones
+  stress_level text,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists cardio_evals_user_evaluated_idx
+  on public.cardiovascular_evaluations (user_id, evaluated_at desc);
+
+alter table public.cardiovascular_evaluations enable row level security;
+
+drop policy if exists "Users can read their own cardio evaluations" on public.cardiovascular_evaluations;
+create policy "Users can read their own cardio evaluations"
+  on public.cardiovascular_evaluations for select to authenticated
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own cardio evaluations" on public.cardiovascular_evaluations;
+create policy "Users can insert their own cardio evaluations"
+  on public.cardiovascular_evaluations for insert to authenticated
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own cardio evaluations" on public.cardiovascular_evaluations;
+create policy "Users can update their own cardio evaluations"
+  on public.cardiovascular_evaluations for update to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own cardio evaluations" on public.cardiovascular_evaluations;
+create policy "Users can delete their own cardio evaluations"
+  on public.cardiovascular_evaluations for delete to authenticated
+  using (auth.uid() = user_id);

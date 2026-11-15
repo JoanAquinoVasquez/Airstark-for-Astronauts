@@ -16,6 +16,7 @@ import AstronautSetup from './components/AstronautSetup.jsx';
 import { isSupabaseConfigured, loadCloudData, NOTIFICATIONS_STORAGE_KEY, supabase } from './lib/supabase.js';
 import { HEALTH_STORAGE_KEY } from './lib/health.js';
 import { PROFILE_STORAGE_KEY } from './lib/profile.js';
+import { getBleState, subscribeBleStatus, subscribeBlePacket } from './lib/bleManager.js';
 
 const navigation = [
   { to: '/', label: 0, icon: 'overview', end: true },
@@ -35,11 +36,20 @@ function AppShell({ session }) {
   const [signOutMessage, setSignOutMessage] = useState('');
   const { language, setLanguage } = useContext(LanguageContext);
   const [astronaut, setAstronaut] = useState(getAstronautProfile);
+  const [bleLive, setBleLive] = useState(() => getBleState());
   const text = copy[language];
   const location = useLocation();
   const current = navigation.find((item) => item.end
     ? location.pathname === item.to
     : location.pathname.startsWith(item.to)) || navigation[0];
+  useEffect(() => {
+    const unsubStatus = subscribeBleStatus(() => setBleLive(getBleState()));
+    const unsubPacket = subscribeBlePacket(() => setBleLive(getBleState()));
+    return () => {
+      unsubStatus();
+      unsubPacket();
+    };
+  }, []);
   useEffect(() => {
     if (location.hash === '#notifications-panel') requestAnimationFrame(() => document.getElementById('notifications-panel')?.scrollIntoView({ behavior: 'smooth' }));
   }, [location.hash, location.pathname]);
@@ -96,7 +106,30 @@ function AppShell({ session }) {
         <header className="topbar">
           <button className="menu-button" aria-label={text.app.menu} onClick={() => setMenuOpen((open) => !open)}><Icon name="menu" size={17} /></button>
           <div className="breadcrumb">AIRSTARK <span>/</span> <b>{text.app.nav[current.label]}</b></div>
-          <div className="top-actions"><Link className="notifications-shortcut" to="/#notifications-panel" aria-label={language === 'en' ? 'Notifications' : 'Notificaciones'} title={language === 'en' ? 'Notifications' : 'Notificaciones'}><Icon name="bell" size={16} /><i /></Link><div className="language-switch" role="group" aria-label="Choose language / Elegir idioma"><button type="button" className={language === 'en' ? 'active' : ''} aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button><button type="button" className={language === 'es' ? 'active' : ''} aria-pressed={language === 'es'} onClick={() => setLanguage('es')}>ES</button></div><span className="mission-pill"><i /> {text.app.missionDemo}</span><a className="space-apps-mark" href="https://www.spaceappschallenge.org/" target="_blank" rel="noreferrer" aria-label="NASA Space Apps Challenge"><img src="https://assets.spaceappschallenge.org/media/images/Space_Apps_Logo_Color_and_White.width-440.jpegquality-60.png" alt="NASA Space Apps Challenge" /></a><Link className="top-avatar" to="/perfil" aria-label={text.app.nav[7]}>{astronautInitials(astronaut.name)}</Link>{session && <button className="auth-signout" type="button" onClick={closeSession}><Icon name="logout" size={13} /><span>{language === 'en' ? 'Sign out' : 'Cerrar sesión'}</span></button>}</div>
+          <div className="top-actions">
+            {bleLive.status === 'connected' && (
+              <Link
+                to="/monitor"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'rgba(73, 221, 178, 0.12)',
+                  border: '1px solid rgba(73, 221, 178, 0.35)',
+                  borderRadius: 20,
+                  padding: '5px 10px',
+                  color: '#49ddb2',
+                  font: '500 8.5px var(--mono)',
+                  textDecoration: 'none',
+                  letterSpacing: '0.05em'
+                }}
+                title={language === 'en' ? 'Smartwatch connected live. Click to view Live Monitor.' : 'Smartwatch conectado en vivo. Clic para ver Monitor.'}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#49ddb2', boxShadow: '0 0 8px #49ddb2' }} />
+                <span>GALAXY WATCH · {bleLive.latestPacket?.bpm || 72} BPM</span>
+              </Link>
+            )}
+            <Link className="notifications-shortcut" to="/#notifications-panel" aria-label={language === 'en' ? 'Notifications' : 'Notificaciones'} title={language === 'en' ? 'Notifications' : 'Notificaciones'}><Icon name="bell" size={16} /><i /></Link><div className="language-switch" role="group" aria-label="Choose language / Elegir idioma"><button type="button" className={language === 'en' ? 'active' : ''} aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button><button type="button" className={language === 'es' ? 'active' : ''} aria-pressed={language === 'es'} onClick={() => setLanguage('es')}>ES</button></div><span className="mission-pill"><i /> {text.app.missionDemo}</span><a className="space-apps-mark" href="https://www.spaceappschallenge.org/" target="_blank" rel="noreferrer" aria-label="NASA Space Apps Challenge"><img src="https://assets.spaceappschallenge.org/media/images/Space_Apps_Logo_Color_and_White.width-440.jpegquality-60.png" alt="NASA Space Apps Challenge" /></a><Link className="top-avatar" to="/perfil" aria-label={text.app.nav[7]}>{astronautInitials(astronaut.name)}</Link>{session && <button className="auth-signout" type="button" onClick={closeSession}><Icon name="logout" size={13} /><span>{language === 'en' ? 'Sign out' : 'Cerrar sesión'}</span></button>}</div>
         </header>
         <div className="route-content" key={location.pathname}>
           <Routes>
