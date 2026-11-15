@@ -245,8 +245,8 @@ export default function HealthForm() {
 
       setError(false);
       const successMsg = isEn
-        ? `Cardiovascular evaluation saved. BMI: ${parsedBmi} (${imcInfo.label})${newTableSuccess ? ' · Synced to cardiovascular_evaluations' : ' · Saved locally and in health_records'}`
-        : `Evaluación cardiovascular guardada exitosamente. IMC: ${parsedBmi} (${imcInfo.label})${newTableSuccess ? ' · Sincronizado en cardiovascular_evaluations' : ' · Guardado localmente y en health_records'}`;
+        ? `Cardiovascular evaluation saved. BMI: ${parsedBmi} (${imcInfo.label})${newTableSuccess ? ' · Synced to cardiovascular_evaluations' : ''}`
+        : `Evaluación cardiovascular guardada exitosamente. IMC: ${parsedBmi} (${imcInfo.label})${newTableSuccess ? '' : ' · Guardado localmente y en health_records'}`;
       setMessage(successMsg);
     } catch (err) {
       setError(true);
@@ -926,9 +926,9 @@ export default function HealthForm() {
                 ? 'Evaluation encrypted in Supabase and local device storage.'
                 : 'Evaluación cifrada en Supabase y almacenamiento local del dispositivo.'}
             </span>
-            <button className="submit-button" type="submit" disabled={isSubmitting}>
-              <span>{isSubmitting ? (isEn ? 'Saving…' : 'Guardando…') : (isEn ? 'Save Cardiovascular Evaluation' : 'Guardar Evaluación Cardiovascular')}</span>
-              <Icon name="arrowRight" size={14} />
+            <button className="health-submit-button" type="submit" disabled={isSubmitting}>
+              <span>{isSubmitting ? (isEn ? 'Saving' : 'Guardando') : (isEn ? 'Save Clinical Evaluation' : 'Guardar Evaluación')}</span>
+              <Icon name="arrowRight" size={15} />
             </button>
           </div>
         </form>
