@@ -31,6 +31,22 @@ const navigation = [
 
 function AppShell({ session }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('airstark.sidebarCollapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try { localStorage.setItem('airstark.sidebarCollapsed', String(next)); } catch {}
+      return next;
+    });
+  };
+
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const [signOutPending, setSignOutPending] = useState(false);
   const [signOutMessage, setSignOutMessage] = useState('');
@@ -65,47 +81,92 @@ function AppShell({ session }) {
   }, [signOutMessage]);
 
   async function closeSession() {
-    const warning = session?.user?.is_anonymous
-      ? (language === 'en' ? 'End this demo session? Its cloud data cannot be recovered after signing out. A new session will start.' : '¿Cerrar esta sesión demo? No podrás recuperar sus datos en la nube al salir. Se iniciará una sesión nueva.')
-      : (language === 'en' ? 'Sign out and return to the demo welcome screen?' : '¿Cerrar la sesión y volver a la bienvenida de la demo?');
-    if (!signOutConfirm) { setSignOutMessage(warning); setSignOutConfirm(true); return; }
     setSignOutPending(true);
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      for (const key of [HEALTH_STORAGE_KEY, PROFILE_STORAGE_KEY, NOTIFICATIONS_STORAGE_KEY, 'airstark.agentSession.v1']) localStorage.removeItem(key);
+      if (supabase) {
+        try { await supabase.auth.signOut(); } catch {}
+      }
+      for (const key of [HEALTH_STORAGE_KEY, PROFILE_STORAGE_KEY, NOTIFICATIONS_STORAGE_KEY, 'airstark.agentSession.v1']) {
+        localStorage.removeItem(key);
+      }
+      localStorage.setItem('airstark.signedOut', 'true');
       window.location.reload();
-    } catch (error) {
-      setSignOutConfirm(false);
-      setSignOutMessage(language === 'en' ? `Could not sign out: ${error.message}` : `No se pudo cerrar la sesión: ${error.message}`);
-      setSignOutPending(false);
+    } catch {
+      localStorage.setItem('airstark.signedOut', 'true');
+      window.location.reload();
     }
   }
 
   return (
-    <div className="app-shell">
-      <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
-        <NavLink className="brand" to="/" onClick={() => setMenuOpen(false)}>
-          <img className="brand-logo" src={brandLogo} alt="" />
-          <span className="brand-name">AIRSTARK<span>FOR ASTRONAUTS</span></span>
-        </NavLink>
-        <div className="nav-label">{text.app.missionCenter}</div>
+    <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${menuOpen ? 'open' : ''}`}>
+        <div className="sidebar-brand-row">
+          <NavLink className="brand" to="/" onClick={() => setMenuOpen(false)}>
+            <img className="brand-logo" src={brandLogo} alt="" />
+            {!sidebarCollapsed && <span className="brand-name">AIRSTARK<span>FOR ASTRONAUTS</span></span>}
+          </NavLink>
+          <button
+            type="button"
+            className="sidebar-collapse-btn"
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={sidebarCollapsed ? (language === 'en' ? 'Expand menu' : 'Expandir menú') : (language === 'en' ? 'Collapse menu' : 'Ocultar menú')}
+            onClick={toggleSidebar}
+          >
+            <Icon name={sidebarCollapsed ? 'chevronRight' : 'chevronLeft'} size={14} />
+          </button>
+        </div>
+        {!sidebarCollapsed && <div className="nav-label">{text.app.missionCenter}</div>}
         <nav className="nav-links" aria-label={language === 'en' ? 'Main navigation' : 'Navegación principal'}>
           {navigation.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
-              <span className="nav-icon"><Icon name={item.icon} size={16} /></span>{text.app.nav[item.label]}
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+              title={text.app.nav[item.label]}
+            >
+              <span className="nav-icon"><Icon name={item.icon} size={16} /></span>
+              {!sidebarCollapsed && <span className="nav-text">{text.app.nav[item.label]}</span>}
             </NavLink>
           ))}
         </nav>
         <div className="sidebar-spacer" />
-        <div className="mission-card"><span className="live-dot" /><div><small>{text.app.missionStatus}</small><strong>{text.app.simulation}</strong></div><span className="mission-orbit"><Icon name="sparkles" size={15} /></span></div>
-        <NavLink className="sidebar-foot profile-sidebar-link" to="/perfil"><span className="avatar">{astronautInitials(astronaut.name)}</span><span className="crew"><strong>{astronaut.name}</strong><small>{language === 'en' ? `Crew · ${astronaut.crewId}` : `Tripulación · ${astronaut.crewId}`}</small></span><span className="more"><Icon name="more" size={15} /></span></NavLink>
+        <div className="mission-card" title={language === 'en' ? 'Simulation active' : 'Simulación activa'}>
+          <span className="live-dot" />
+          {!sidebarCollapsed && (
+            <>
+              <div><small>{text.app.missionStatus}</small><strong>{text.app.simulation}</strong></div>
+              <span className="mission-orbit"><Icon name="sparkles" size={15} /></span>
+            </>
+          )}
+        </div>
+        <NavLink className="sidebar-foot profile-sidebar-link" to="/perfil" title={astronaut.name}>
+          <span className="avatar">{astronautInitials(astronaut.name)}</span>
+          {!sidebarCollapsed && (
+            <>
+              <span className="crew"><strong>{astronaut.name}</strong><small>{language === 'en' ? `Crew · ${astronaut.crewId}` : `Tripulación · ${astronaut.crewId}`}</small></span>
+              <span className="more"><Icon name="more" size={15} /></span>
+            </>
+          )}
+        </NavLink>
       </aside>
 
       <main className="main-content">
         <header className="topbar">
-          <button className="menu-button" aria-label={text.app.menu} onClick={() => setMenuOpen((open) => !open)}><Icon name="menu" size={17} /></button>
-          <div className="breadcrumb">AIRSTARK <span>/</span> <b>{text.app.nav[current.label]}</b></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              type="button"
+              className="sidebar-desktop-toggle"
+              aria-label={sidebarCollapsed ? 'Expand menu' : 'Collapse menu'}
+              title={sidebarCollapsed ? (language === 'en' ? 'Expand menu' : 'Expandir menú') : (language === 'en' ? 'Collapse menu' : 'Ocultar menú')}
+              onClick={toggleSidebar}
+            >
+              <Icon name="menu" size={16} />
+            </button>
+            <button className="menu-button" aria-label={text.app.menu} onClick={() => setMenuOpen((open) => !open)}><Icon name="menu" size={17} /></button>
+            <div className="breadcrumb">AIRSTARK <span>/</span> <b>{text.app.nav[current.label]}</b></div>
+          </div>
           <div className="top-actions">
             {bleLive.status === 'connected' && (
               <Link
@@ -157,7 +218,10 @@ export default function App() {
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured);
   const [cloudReady, setCloudReady] = useState(!isSupabaseConfigured);
   const [cloudError, setCloudError] = useState('');
-  const [profileReady, setProfileReady] = useState(() => Boolean(localStorage.getItem(PROFILE_STORAGE_KEY)));
+  const [profileReady, setProfileReady] = useState(() => {
+    if (localStorage.getItem('airstark.signedOut') === 'true') return false;
+    return Boolean(localStorage.getItem(PROFILE_STORAGE_KEY));
+  });
 
   useEffect(() => localStorage.setItem('airstark.language', language), [language]);
 
@@ -188,7 +252,7 @@ export default function App() {
   useEffect(() => {
     if (!session || !supabase) return;
     let active = true;
-    const existingLocalProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
+    const isSignedOut = localStorage.getItem('airstark.signedOut') === 'true';
 
     loadCloudData().then(async ({ records, notifications, profile }) => {
       if (!active) return;
@@ -199,20 +263,12 @@ export default function App() {
         localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
       }
 
-      if (profile) {
+      if (isSignedOut) {
+        setProfileReady(false);
+      } else if (profile) {
         localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
         setProfileReady(true);
         window.dispatchEvent(new CustomEvent('airstark-profile-updated', { detail: profile }));
-      } else if (existingLocalProfile) {
-        setProfileReady(true);
-        try {
-          const parsed = JSON.parse(existingLocalProfile);
-          if (parsed?.name) {
-            await saveCloudProfile(parsed);
-          }
-        } catch {
-          // ignore background sync errors
-        }
       } else {
         setProfileReady(false);
       }

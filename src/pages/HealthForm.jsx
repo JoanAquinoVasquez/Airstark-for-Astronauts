@@ -266,6 +266,30 @@ export default function HealthForm() {
             ? 'Structured 23-variable cardiovascular evaluation protocol (Framingham criteria). Syncs to cloud database.'
             : 'Protocolo de evaluación cardiovascular de 23 variables clínicas (criterios Framingham). Sincroniza con base de datos en la nube.'
         }
+        action={
+          <button
+            type="button"
+            className="cardio-autofill-btn"
+            onClick={handleAutofillDemo}
+            style={{
+              background: 'linear-gradient(135deg, rgba(84, 215, 238, 0.28), rgba(73, 221, 178, 0.28))',
+              border: '1.5px solid #54d7ee',
+              color: '#ffffff',
+              padding: '9px 18px',
+              fontSize: '11px',
+              fontWeight: 700,
+              borderRadius: '8px',
+              boxShadow: '0 0 18px rgba(84, 215, 238, 0.35)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              cursor: 'pointer'
+            }}
+          >
+            <Icon name="sparkles" size={15} />
+            <span>{isEn ? 'Autofill Demo Sample' : '⚡ Llenar datos de prueba'}</span>
+          </button>
+        }
       />
 
       <section className="panel form-panel health-form-panel">

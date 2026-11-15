@@ -1,4 +1,5 @@
 import { getAstronautProfile } from './profile.js';
+import { getCurrentUserId } from './supabase.js';
 
 export const HEALTH_STORAGE_KEY = 'airstark.healthRecords.v1';
 const CHAT_SESSION_STORAGE_KEY = 'airstark.agentSession.v1';
@@ -199,19 +200,30 @@ function extractResponse(payload) {
 }
 
 export async function askAgent(question, language = 'en') {
-  const astronautData = getAstronautContext();
-  const answerLanguage = language === 'es' ? 'Spanish' : 'English';
-  const healthContextLabel = language === 'es' ? 'Contexto de salud AIRSTARK (JSON; isMock=true identifica datos simulados)' : 'AIRSTARK health context (JSON; isMock=true identifies simulated data)';
-  const coaching = language === 'es'
-    ? 'Responde como asistente de bienestar, con lenguaje claro y empático. Sé breve: máximo 100 palabras, evita repetir ideas y usa frases cortas. Explica los datos disponibles, distingue datos simulados de mediciones reales y señala incertidumbres. Para orientación de salud usa solo: **Resumen** (1 frase) y **Plan de acción** (hasta 3 pasos concretos, incluyendo cuándo consultar si aplica). Menciona señales de urgencia solo cuando sean pertinentes. No diagnostiques, no prescribas ni recomiendes cambiar medicamentos; valida decisiones clínicas con un profesional. Si faltan datos esenciales, haz una pregunta breve antes de concluir.'
-    : 'Respond as a clear, empathetic wellbeing assistant. Be concise: no more than 100 words, avoid repetition, and use short sentences. Explain available data, distinguish simulated from real measurements, and state uncertainty. For health guidance use only: **Summary** (one sentence) and **Action plan** (up to 3 concrete steps, including when to seek care if relevant). Mention urgent warning signs only when relevant. Do not diagnose, prescribe, or recommend medication changes; confirm clinical decisions with a professional. If essential information is missing, ask one brief question before concluding.';
-  const chatInput = `${coaching}\n\nReply to the astronaut in ${answerLanguage}. ${question}\n\n${healthContextLabel}:\n${JSON.stringify(astronautData)}`;
+  const profile = getAstronautProfile();
+  const userId = (await getCurrentUserId()) || profile?.userId || profile?.user_id || null;
+
+  // Prompt simplificado: solo user_id y el mensaje entrante
+  const chatInput = userId ? `user_id: ${userId}\n${question}` : question;
   const chatUrl = new URL(AGENT_WEBHOOK);
   chatUrl.searchParams.set('action', 'sendMessage');
+
+  const requestPayload = {
+    action: 'sendMessage',
+    sessionId: getChatSessionId(),
+    chatInput,
+    message: question,
+    question,
+    user_id: userId,
+    userId: userId,
+    crew_id: profile?.crewId || 'A-9K21',
+    language,
+  };
+
   const response = await fetch(chatUrl, {
     method: 'POST', mode: 'cors', credentials: 'omit',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'sendMessage', sessionId: getChatSessionId(), chatInput, question, language, astronautData }),
+    body: JSON.stringify(requestPayload),
   });
   const body = await response.text();
   if (!response.ok) throw new Error(`Webhook request failed: ${response.status}`);

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { exportRecords, formatDate, getCurrentRecords, getSavedRecords, localizeStress, stressLabel } from '../lib/health.js';
 import { PageHeading } from '../components/ui.jsx';
 import { copy, useLanguage } from '../i18n.jsx';
@@ -5,8 +6,24 @@ import { copy, useLanguage } from '../i18n.jsx';
 export default function History() {
   const { language } = useLanguage();
   const t = copy[language].history;
-  const records = getCurrentRecords();
-  const saved = getSavedRecords();
+  const [records, setRecords] = useState(getCurrentRecords);
+  const [saved, setSaved] = useState(getSavedRecords);
+
+  useEffect(() => {
+    const refresh = () => {
+      setRecords(getCurrentRecords());
+      setSaved(getSavedRecords());
+    };
+    window.addEventListener('airstark-cloud-data-loaded', refresh);
+    window.addEventListener('storage', refresh);
+    window.addEventListener('airstark-cardio-updated', refresh);
+    return () => {
+      window.removeEventListener('airstark-cloud-data-loaded', refresh);
+      window.removeEventListener('storage', refresh);
+      window.removeEventListener('airstark-cardio-updated', refresh);
+    };
+  }, []);
+
   return <>
     <PageHeading eyebrow={t.eyebrow} title={t.title} description={t.description} action={<button className="export-button" type="button" disabled={!saved.length} onClick={() => exportRecords(saved)}>{saved.length ? t.export : t.noData}</button>} />
     <section className="panel history-panel history-page-panel">

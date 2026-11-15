@@ -14,6 +14,8 @@ const shapes = {
   arrowRight: <><path d="M4 12h15m-6-6 6 6-6 6"/></>,
   arrowUp: <><path d="M12 19V5m-6 6 6-6 6 6"/></>,
   chevronDown: <><path d="m6 9 6 6 6-6"/></>,
+  chevronLeft: <><path d="m15 18-6-6 6-6"/></>,
+  chevronRight: <><path d="m9 18 6-6-6-6"/></>,
   upload: <><path d="M12 16V4m-5 5 5-5 5 5"/><path d="M4 16v4h16v-4"/></>,
   info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></>,
   bell: <><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></>,

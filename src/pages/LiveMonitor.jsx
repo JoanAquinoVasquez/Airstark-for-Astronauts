@@ -248,8 +248,24 @@ function CompactAssistant({ language }) {
 // ─── Compact History Table ────────────────────────────────────────────────────
 function CompactHistory({ language }) {
   const t = copy[language].history;
-  const records = getCurrentRecords();
-  const saved = getSavedRecords();
+  const [records, setRecords] = useState(getCurrentRecords);
+  const [saved, setSaved] = useState(getSavedRecords);
+
+  useEffect(() => {
+    const refresh = () => {
+      setRecords(getCurrentRecords());
+      setSaved(getSavedRecords());
+    };
+    window.addEventListener('airstark-cloud-data-loaded', refresh);
+    window.addEventListener('storage', refresh);
+    window.addEventListener('airstark-cardio-updated', refresh);
+    return () => {
+      window.removeEventListener('airstark-cloud-data-loaded', refresh);
+      window.removeEventListener('storage', refresh);
+      window.removeEventListener('airstark-cardio-updated', refresh);
+    };
+  }, []);
+
   const recent = records.slice(0, 10);
 
   return (
@@ -550,22 +566,12 @@ export default function LiveMonitor() {
                   {bleStatus === 'connected'
                     ? (language === 'es' ? 'Desconectar reloj' : 'Disconnect watch')
                     : bleStatus === 'connecting'
-                    ? (language === 'es' ? 'Conectando…' : 'Connecting…')
-                    : (language === 'es' ? 'Emparejar Bluetooth (BLE)' : 'Pair Bluetooth (BLE)')}
+                      ? (language === 'es' ? 'Conectando…' : 'Connecting…')
+                      : (language === 'es' ? 'Emparejar Bluetooth (BLE)' : 'Pair Bluetooth (BLE)')}
                 </span>
               </button>
 
-              <label className="csv-replay-btn" title="Cargar CSV de BPM-por-minuto para reproducir">
-                <Icon name="upload" size={12} />
-                <span>{csvReplayMode ? (language === 'es' ? 'Cambiar CSV' : 'Change CSV') : (language === 'es' ? 'Reproducir CSV' : 'Replay CSV')}</span>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv,text/csv"
-                  style={{ display: 'none' }}
-                  onChange={handleLoadCsvFile}
-                />
-              </label>
+
             </div>
 
             {bleStatus === 'connected' && (
@@ -604,61 +610,9 @@ export default function LiveMonitor() {
               </div>
             )}
 
-            <div className="vitals-grid">
-              <div className="vitals-item">
-                <small>ZONA CARDÍACA</small>
-                <strong style={{ color: cardiacZone.strokeHex, fontSize: 13 }}>{cardiacZone.name}</strong>
-              </div>
-              <div className="vitals-item">
-                <small>HRV · RMSSD</small>
-                <strong>{hrvMetrics.rmssdMs ? hrvMetrics.rmssdMs : '42'} <small>ms</small></strong>
-              </div>
-              <div className="vitals-item">
-                <small>{language === 'es' ? 'Intervalo RR' : 'RR Interval'}</small>
-                <strong>{currentRr} <small>ms</small></strong>
-              </div>
-              <div className="vitals-item">
-                <small>TRAMA HEX BLE</small>
-                <strong style={{ fontSize: 12 }}><code className="hex-telemetry-badge">{rawHex}</code></strong>
-              </div>
-            </div>
-          </div>
 
-          {/* Modos rápidos de actividad espacial */}
-          <div className="space-scenarios-card">
-            <div className="vitals-header">
-              <span>{language === 'es' ? 'PERFILES OPERACIONALES' : 'OPERATIONAL MODES'}</span>
-            </div>
-            <div className="space-scenarios-grid">
-              <button
-                type="button"
-                className={`scenario-pill ${bpm === 58 ? 'active' : ''}`}
-                onClick={() => { setCsvReplayMode(false); changeBpm(58); }}
-              >
-                <i style={{ background: '#4ecdc4' }} />
-                <span>{language === 'es' ? 'Reposo circadiano' : 'Circadian Rest'}</span>
-                <small>58 bpm</small>
-              </button>
-              <button
-                type="button"
-                className={`scenario-pill ${bpm === 118 ? 'active' : ''}`}
-                onClick={() => { setCsvReplayMode(false); changeBpm(118); }}
-              >
-                <i style={{ background: '#ffd93d' }} />
-                <span>{language === 'es' ? 'Paseo espacial (EVA)' : 'EVA Spacewalk'}</span>
-                <small>118 bpm</small>
-              </button>
-              <button
-                type="button"
-                className={`scenario-pill ${bpm === 142 ? 'active' : ''}`}
-                onClick={() => { setCsvReplayMode(false); changeBpm(142); }}
-              >
-                <i style={{ background: '#ff6b6b' }} />
-                <span>{language === 'es' ? 'Ejercicio ARED' : 'ARED Exercise'}</span>
-                <small>142 bpm</small>
-              </button>
-            </div>
           </div>
+          <CompactHistory language={language} />
         </section>
 
         {/* ══════════════════════════════════════════════════════════════
@@ -695,7 +649,6 @@ export default function LiveMonitor() {
             ══════════════════════════════════════════════════════════════ */}
         <section className="monitor-col-panel monitor-right-col" aria-label="Asistente de IA e Historial">
           <CompactAssistant language={language} />
-          <CompactHistory language={language} />
         </section>
       </div>
     </div>

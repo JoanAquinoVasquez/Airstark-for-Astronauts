@@ -19,22 +19,9 @@ function generateRandomCrewId() {
 
 const PRESETS = [
   {
-    id: 'medical',
-    name: 'Dr. Elena Vance',
-    crewId: 'A-7M04',
-    missionEn: 'Artemis III · Lunar Base',
-    missionEs: 'Artemis III · Base Lunar',
-    roleEn: 'Chief Medical Officer',
-    roleEs: 'Oficial Médico en Jefe',
-    avatar: 'EV',
-    tag: 'NASA / ESA',
-    statusEn: 'Flight Certified',
-    statusEs: 'Certificado para Vuelo',
-  },
-  {
     id: 'commander',
     name: 'Cmdr. Marcus Vega',
-    crewId: 'A-9K21',
+    crewId: 'A-9K21-YCXQ',
     missionEn: 'ISS Expedition 71',
     missionEs: 'ISS Expedición 71',
     roleEn: 'Expedition Commander',
@@ -43,19 +30,6 @@ const PRESETS = [
     tag: 'NASA ISS',
     statusEn: 'Command Ready',
     statusEs: 'Listo para Mando',
-  },
-  {
-    id: 'engineer',
-    name: 'Alex Crew',
-    crewId: 'A-3X88',
-    missionEn: 'Lunar Gateway Orbit',
-    missionEs: 'Órbita Lunar Gateway',
-    roleEn: 'Flight Systems Engineer',
-    roleEs: 'Ingeniero de Sistemas de Vuelo',
-    avatar: 'AC',
-    tag: 'Deep Space',
-    statusEn: 'EVA Certified',
-    statusEs: 'Apto para EVA',
   },
 ];
 
@@ -109,15 +83,15 @@ export default function AstronautSetup({ language: propLang, onDone, cloudError 
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
-  const [selectedPreset, setSelectedPreset] = useState(null);
+  const [selectedPreset, setSelectedPreset] = useState('commander');
   const [activeTelemetry, setActiveTelemetry] = useState('ared');
   const [livePulse, setLivePulse] = useState(142);
 
   // Form states so presets and random generation reflect instantly in inputs
-  const [name, setName] = useState('');
-  const [crewId, setCrewId] = useState(() => generateRandomCrewId());
-  const [mission, setMission] = useState(en ? 'Artemis III · Lunar Base' : 'Artemis III · Base Lunar');
-  const [role, setRole] = useState(en ? 'Flight crew member' : 'Tripulante de vuelo');
+  const [name, setName] = useState('Cmdr. Marcus Vega');
+  const [crewId, setCrewId] = useState('A-9K21-YCXQ');
+  const [mission, setMission] = useState(en ? 'ISS Expedition 71' : 'ISS Expedición 71');
+  const [role, setRole] = useState(en ? 'Expedition Commander' : 'Comandante de Expedición');
 
   const missionSuggestions = en
     ? ['Artemis III · Lunar Base', 'ISS Expedition 71', 'Lunar Gateway Orbit', 'Mars Transit 2026']
@@ -160,11 +134,12 @@ export default function AstronautSetup({ language: propLang, onDone, cloudError 
     event.preventDefault();
     setSaving(true);
     setMessage('');
+    try { localStorage.removeItem('airstark.signedOut'); } catch {}
 
-    const trimmedName = name.trim() || (en ? 'Alex Crew' : 'Alex Tripulante');
-    const trimmedCrewId = (crewId.trim() || generateRandomCrewId()).toUpperCase();
-    const trimmedMission = mission.trim() || (en ? 'Artemis III · Lunar Base' : 'Artemis III · Base Lunar');
-    const trimmedRole = role.trim() || (en ? 'Flight crew member' : 'Tripulante de vuelo');
+    const trimmedName = name.trim() || (en ? 'Cmdr. Marcus Vega' : 'Cmdr. Marcus Vega');
+    const trimmedCrewId = (crewId.trim() || 'A-9K21-YCXQ').toUpperCase();
+    const trimmedMission = mission.trim() || (en ? 'ISS Expedition 71' : 'ISS Expedición 71');
+    const trimmedRole = role.trim() || (en ? 'Expedition Commander' : 'Comandante de Expedición');
 
     const profile = saveAstronautProfile({
       name: trimmedName,
@@ -494,8 +469,25 @@ export default function AstronautSetup({ language: propLang, onDone, cloudError 
               </div>
             </div>
 
-            {/* CUSTOMIZABLE FORM */}
+            {/* VERIFIED DEMO PROFILE FORM */}
             <form className="profile-form portal-form" onSubmit={handleSubmit}>
+              <div style={{
+                background: 'rgba(84, 215, 238, 0.06)',
+                border: '1px solid rgba(84, 215, 238, 0.22)',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '11px',
+                color: '#8ee6f3',
+                fontFamily: 'var(--mono)',
+                marginBottom: '12px'
+              }}>
+                <span className="live-dot" />
+                <span>{en ? 'CREDENTIALS LOCKED FOR DEMO · SUPABASE LINKED (845cc4fa)' : 'CREDENCIALES OFICIALES PARA DEMO · SUPABASE ENLAZADO (845cc4fa)'}</span>
+              </div>
+
               <div className="form-fields-grid">
                 {/* Full Name Field */}
                 <label className="field">
@@ -507,40 +499,26 @@ export default function AstronautSetup({ language: propLang, onDone, cloudError 
                       className="profile-text-input"
                       name="name"
                       value={name}
-                      onChange={(e) => {
-                        setName(e.target.value);
-                        setSelectedPreset(null);
-                      }}
-                      placeholder={en ? 'e.g. Dr. Alex Vance' : 'Ej. Dra. Alex Vance'}
-                      maxLength="80"
-                      autoComplete="name"
+                      readOnly
+                      style={{ cursor: 'default', background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(84,215,238,0.2)' }}
                       required
                     />
                     <span className="input-icon-decor"><Icon name="user" size={15} /></span>
                   </div>
                 </label>
 
-                {/* Crew ID Field with Randomizer Button */}
+                {/* Crew ID Field */}
                 <label className="field">
-                  <span className="field-split-label">
-                    <span>{en ? 'Crew ID' : 'ID de Tripulación'} <em>*</em></span>
-                    <button
-                      type="button"
-                      className="random-crew-btn"
-                      onClick={handleRandomizeCrewId}
-                      title={en ? 'Generate new Crew ID' : 'Generar nuevo ID'}
-                    >
-                      <Icon name="refresh" size={11} />
-                      <span>{en ? 'Shuffle' : 'Aleatorio'}</span>
-                    </button>
+                  <span>
+                    {en ? 'Crew ID (Locked)' : 'ID de Tripulación (Fijo)'} <em>*</em>
                   </span>
                   <div className="input-wrap">
                     <input
                       className="profile-text-input mono-font"
                       name="crewId"
                       value={crewId}
-                      onChange={(e) => setCrewId(e.target.value.toUpperCase())}
-                      maxLength="24"
+                      readOnly
+                      style={{ cursor: 'default', background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(84,215,238,0.2)' }}
                       required
                     />
                     <span className="input-icon-decor"><Icon name="shield" size={15} /></span>
@@ -557,8 +535,8 @@ export default function AstronautSetup({ language: propLang, onDone, cloudError 
                       className="profile-text-input"
                       name="mission"
                       value={mission}
-                      onChange={(e) => setMission(e.target.value)}
-                      maxLength="80"
+                      readOnly
+                      style={{ cursor: 'default', background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(84,215,238,0.2)' }}
                       required
                     />
                     <span className="input-icon-decor"><Icon name="satellite" size={15} /></span>
@@ -573,46 +551,12 @@ export default function AstronautSetup({ language: propLang, onDone, cloudError 
                       className="profile-text-input"
                       name="role"
                       value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      maxLength="80"
-                      placeholder={en ? 'e.g. Chief Medical Officer' : 'Ej. Oficial Médico'}
+                      readOnly
+                      style={{ cursor: 'default', background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(84,215,238,0.2)' }}
                     />
                     <span className="input-icon-decor"><Icon name="sparkles" size={15} /></span>
                   </div>
                 </label>
-              </div>
-
-              {/* Quick Role & Mission Pills */}
-              <div className="form-quick-suggestions">
-                <span className="quick-label">{en ? 'Quick Missions:' : 'Misiones rápidas:'}</span>
-                <div className="quick-pill-list">
-                  {missionSuggestions.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      className={`quick-pill ${mission === item ? 'active' : ''}`}
-                      onClick={() => setMission(item)}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="form-quick-suggestions">
-                <span className="quick-label">{en ? 'Quick Roles:' : 'Roles rápidos:'}</span>
-                <div className="quick-pill-list">
-                  {roleSuggestions.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      className={`quick-pill ${role === item ? 'active' : ''}`}
-                      onClick={() => setRole(item)}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               {/* Holographic Crew Boarding Pass / Biometric Live Preview */}
