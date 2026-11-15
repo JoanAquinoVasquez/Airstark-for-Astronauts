@@ -485,7 +485,7 @@ export default function AstronautSetup({ language: propLang, onDone, cloudError 
                 marginBottom: '12px'
               }}>
                 <span className="live-dot" />
-                <span>{en ? 'CREDENTIALS LOCKED FOR DEMO · SUPABASE LINKED (845cc4fa)' : 'CREDENCIALES OFICIALES PARA DEMO · SUPABASE ENLAZADO (845cc4fa)'}</span>
+                <span>{en ? 'CREDENTIALS LOCKED FOR DEMO · SUPABASE LINKED (845cc4fa)' : 'CREDENCIALES OFICIALES PARA DEMO.'}</span>
               </div>
 
               <div className="form-fields-grid">
