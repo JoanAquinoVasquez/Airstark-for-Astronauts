@@ -250,7 +250,7 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [revision, setRevision] = useState(0)
-  useCardiacSimulation(study)
+  useCardiacSimulation(study, view === 'workspace')
   useMonitorSync(study)
 
   useEffect(() => {

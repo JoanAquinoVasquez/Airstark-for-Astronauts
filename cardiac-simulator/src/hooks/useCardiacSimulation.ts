@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect } from 'react'
 import { useSimulationStore } from '../stores/simulation'
 import type { CaseManifest } from '../types'
 
-export function useCardiacSimulation(manifest?: CaseManifest | null) {
+export function useCardiacSimulation(manifest: CaseManifest | null, autoPlay = false) {
   const playing = useSimulationStore((state) => state.playing)
 
   useLayoutEffect(() => {
@@ -10,8 +10,10 @@ export function useCardiacSimulation(manifest?: CaseManifest | null) {
       useSimulationStore.getState().setPlaying(false)
       return
     }
-    useSimulationStore.getState().configure(manifest.phaseTimesNormalized, manifest.dataMode, manifest.referenceBpm)
-  }, [manifest])
+    const simulation = useSimulationStore.getState()
+    simulation.configure(manifest.phaseTimesNormalized, manifest.dataMode, manifest.referenceBpm)
+    if (autoPlay) simulation.setPlaying(true)
+  }, [manifest, autoPlay])
 
   useEffect(() => {
     if (!playing) return

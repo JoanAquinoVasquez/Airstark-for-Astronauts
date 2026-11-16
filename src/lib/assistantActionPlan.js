@@ -1,4 +1,4 @@
-const PLAN_HEADING = /(^|\s)(?:#{1,6}[ \t]+)?(?:\*\*|__)?(plan[ \t]+de[ \t]+acci[oó]n|action[ \t]+plan)[ \t]*:?(?:\*\*|__)?[ \t]*:?(?=\s|$)/giu;
+const PLAN_HEADING = /(^|\s)(?:#{1,6}[ \t]+)?(?:\*\*|__)?(plan[ \t]+de[ \t]+acci[oó]n|action[ \t]+plan|plan[ \t]+of[ \t]+action)[ \t]*:?(?:\*\*|__)?[ \t]*:?(?=\s|$)/giu;
 const LINE_ITEM = /^[ \t]*([-*+•]|\d{1,3}[.)])[ \t]+(?=\S)/gm;
 const END_HEADING = /^[ \t]*(?:#{1,6}[ \t]+\S|(?:\*\*|__)?(?:advertencias?|nota|resumen|explicaci[oó]n|recomendaciones?|señales de (?:alarma|urgencia)|warning(?: signs)?|notes?|summary|explanation|recommendations?)(?:\*\*|__)?[ \t]*(?::|$)|(?:\*\*|__)[^\n]+?(?:\*\*|__)[ \t]*$)/imu;
 
