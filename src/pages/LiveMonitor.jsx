@@ -3,6 +3,7 @@ import { copy, useLanguage } from '../i18n.jsx';
 import Icon from '../components/Icon.jsx';
 import CardiacScenarioLink from '../components/CardiacScenarioLink.jsx';
 import AssistantMessageContent from '../components/AssistantMessageContent.jsx';
+import { useCardiacHotspotsBridge } from '../hooks/useCardiacHotspotsBridge.js';
 import { askAgent } from '../lib/health.js';
 import { speakText, useVoiceRecognition } from '../hooks/useVoiceRecognition.js';
 import { exportRecords, formatDate, getCurrentRecords, getSavedRecords, localizeStress, readSmartwatchCsv, saveRecords, stressLabel } from '../lib/health.js';
@@ -96,7 +97,7 @@ const LiveECGTrace = memo(function LiveECGTrace({ phase, bpm, playing }) {
 });
 
 // ─── Inline Compact AI Assistant ──────────────────────────────────────────────
-function CompactAssistant({ language, onScenario }) {
+function CompactAssistant({ language, onVisualization }) {
   const t = copy[language].assistant;
   const voice = useVoiceRecognition(language);
   const [messages, setMessages] = useState([{ id: 'welcome', role: 'assistant', text: t.welcome }]);
@@ -122,10 +123,10 @@ function CompactAssistant({ language, onScenario }) {
     setQuestion(''); setPending(true); pendingRef.current = true;
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'user', text: clean }]);
     try {
-      const { answer, visualScenario } = await askAgent(clean, language);
+      const { answer, visualScenario, interpretability } = await askAgent(clean, language);
       const id = crypto.randomUUID();
-      setMessages((m) => [...m, { id, role: 'assistant', text: answer, visualScenario }]);
-      if (visualScenario) onScenario({ id, visualScenario });
+      setMessages((m) => [...m, { id, role: 'assistant', text: answer, visualScenario, interpretability }]);
+      onVisualization({ id, visualScenario, interpretability });
       if (fromCall && callRef.current) speakText(answer, language, beginListening);
     } catch {
       setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'assistant', error: true, text: t.failed }]);
@@ -196,7 +197,8 @@ function CompactAssistant({ language, onScenario }) {
                   <Icon name="volume" size={11} />
                 </button>
               )}
-              <CardiacScenarioLink scenario={msg.visualScenario} language={language} />
+              <CardiacScenarioLink scenario={msg.visualScenario} interpretability={msg.interpretability}
+                reportId={msg.id} language={language} />
             </div>
           </div>
         ))}
@@ -321,7 +323,8 @@ export default function LiveMonitor() {
   const [phase, setPhase] = useState(0);
   const iframeRef = useRef(null);
   const [iframeReady, setIframeReady] = useState(false);
-  const [scenarioCommand, setScenarioCommand] = useState(null);
+  const [visualization, setVisualization] = useState(null);
+  const sendHotspots = useCardiacHotspotsBridge(iframeRef, visualization);
 
   // ─── Estados de Web Bluetooth BLE (Sincronizados con el Singleton Global) ──
   const [bleState, setBleState] = useState(() => getBleState());
@@ -346,10 +349,7 @@ export default function LiveMonitor() {
     frameWindow?.postMessage({
       type: 'AIRSTARK_SET_BPM', bpm, playing,
     }, window.location.origin);
-    if (scenarioCommand) frameWindow?.postMessage({
-      type: 'AIRSTARK_SHOW_SCENARIO', ...scenarioCommand,
-    }, window.location.origin);
-  }, [bpm, playing, scenarioCommand]);
+  }, [bpm, playing]);
 
   const changeBpm = useCallback((val) => {
     const num = Math.min(180, Math.max(40, Math.round(val)));
@@ -629,6 +629,7 @@ export default function LiveMonitor() {
               onLoad={() => {
                 setIframeReady(true);
                 postToSimulator();
+                sendHotspots();
               }}
               allow="fullscreen"
             />
@@ -648,7 +649,7 @@ export default function LiveMonitor() {
             Abajo: Historial de mediciones
             ══════════════════════════════════════════════════════════════ */}
         <section className="monitor-col-panel monitor-right-col" aria-label="Asistente de IA e Historial">
-          <CompactAssistant language={language} onScenario={setScenarioCommand} />
+          <CompactAssistant language={language} onVisualization={setVisualization} />
         </section>
       </div>
     </div>

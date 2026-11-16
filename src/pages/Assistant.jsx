@@ -6,13 +6,21 @@ import { speakText, useVoiceRecognition } from '../hooks/useVoiceRecognition.js'
 import Icon from '../components/Icon.jsx';
 import CardiacScenarioLink from '../components/CardiacScenarioLink.jsx';
 import AssistantMessageContent from '../components/AssistantMessageContent.jsx';
-import { isCardiacScenario } from '../lib/cardiacScenario.js';
+import { hasReportHotspots, isCardiacScenario } from '../lib/cardiacScenario.js';
+import { useCardiacHotspotsBridge } from '../hooks/useCardiacHotspotsBridge.js';
 import './assistant-simulation.css';
 
-function SimulationPreview({ scenario, language, onDismiss }) {
-  const title = language === 'en' ? 'Educational cardiac simulation' : 'Simulación cardíaca educativa';
-  const dismissLabel = language === 'en' ? 'Dismiss simulation' : 'Cerrar simulación';
-  const params = new URLSearchParams({ view: 'heart-only', scenario });
+function CardiacPreview({ visualization, language, onDismiss }) {
+  const iframeRef = useRef(null);
+  const en = language === 'en';
+  const hasFindings = hasReportHotspots(visualization.interpretability);
+  const title = hasFindings
+    ? (en ? 'Areas highlighted in the report' : 'Zonas señaladas en el informe')
+    : (en ? 'Educational cardiac simulation' : 'Simulación cardíaca educativa');
+  const dismissLabel = en ? 'Close cardiac preview' : 'Cerrar vista del corazón';
+  const sendToViewer = useCardiacHotspotsBridge(iframeRef, hasFindings ? visualization : null);
+  const params = new URLSearchParams({ view: 'heart-only' });
+  if (!hasFindings) params.set('scenario', visualization.visualScenario);
 
   return (
     <aside className="panel assistant-simulation-preview" aria-labelledby="assistant-simulation-title">
@@ -22,7 +30,8 @@ function SimulationPreview({ scenario, language, onDismiss }) {
           <Icon name="close" size={16} />
         </button>
       </header>
-      <iframe src={`/cardiac-simulator/index.html?${params}`} title={title} allowFullScreen />
+      <iframe ref={iframeRef} onLoad={sendToViewer} src={`/cardiac-simulator/index.html?${params}`}
+        title={title} allowFullScreen />
     </aside>
   );
 }
@@ -35,7 +44,7 @@ export default function Assistant() {
   const [question, setQuestion] = useState('');
   const [pending, setPending] = useState(false);
   const [callActive, setCallActive] = useState(false);
-  const [simulation, setSimulation] = useState(null);
+  const [visualization, setVisualization] = useState(null);
   const bottom = useRef(null);
   const callRef = useRef(false);
   const pendingRef = useRef(false);
@@ -55,10 +64,12 @@ export default function Assistant() {
     setQuestion(''); setPending(true); pendingRef.current = true;
     setMessages((items) => [...items, { id: crypto.randomUUID(), role: 'user', text: clean }]);
     try {
-      const { answer, visualScenario } = await askAgent(clean, language);
+      const { answer, visualScenario, interpretability } = await askAgent(clean, language);
       const id = crypto.randomUUID();
-      setMessages((items) => [...items, { id, role: 'assistant', text: answer, visualScenario }]);
-      if (isCardiacScenario(visualScenario)) setSimulation({ id, scenario: visualScenario });
+      setMessages((items) => [...items, { id, role: 'assistant', text: answer, visualScenario, interpretability }]);
+      setVisualization(hasReportHotspots(interpretability) || isCardiacScenario(visualScenario)
+        ? { id, visualScenario, interpretability }
+        : null);
       if (fromCall && callRef.current) speakText(answer, language, beginListening);
     } catch (error) {
       console.error('AIRSTARK Copilot request failed.', error);
@@ -91,7 +102,8 @@ export default function Assistant() {
               {message.role === 'assistant' ? (
                 <AssistantMessageContent text={message.text} language={language} />
               ) : message.text}
-              <CardiacScenarioLink scenario={message.visualScenario} language={language} />
+              <CardiacScenarioLink scenario={message.visualScenario} interpretability={message.interpretability}
+                reportId={message.id} language={language} />
               {message.role === 'assistant' && (
                 <button type="button" className="speak-button" onClick={() => speakText(message.text, language)}
                   aria-label={language === 'en' ? 'Read response aloud' : 'Leer respuesta en voz alta'}
@@ -115,14 +127,14 @@ export default function Assistant() {
   return (
     <>
       <PageHeading eyebrow={t.eyebrow} title={t.title} description={t.description} />
-      <div className={simulation ? 'assistant-with-scenario' : undefined}>
+      <div className={visualization ? 'assistant-with-scenario' : undefined}>
         {chatPanel}
-        {simulation && (
-          <SimulationPreview
-            key={simulation.id}
-            scenario={simulation.scenario}
+        {visualization && (
+          <CardiacPreview
+            key={visualization.id}
+            visualization={visualization}
             language={language}
-            onDismiss={() => setSimulation(null)}
+            onDismiss={() => setVisualization(null)}
           />
         )}
       </div>

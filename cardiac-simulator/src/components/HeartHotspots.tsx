@@ -2,10 +2,10 @@ import { useRef, type CSSProperties, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Plus, X } from 'lucide-react'
 import { Box3, Matrix3, Mesh, Raycaster, Vector3, type Group } from 'three'
-import type { AnatomyStructure, LoadedCase } from '../types'
+import type { AnatomyStructure } from '../types'
 
-interface InterpretedStructure extends AnatomyStructure {
-  cause?: string
+export interface InterpretedStructure extends AnatomyStructure {
+  cause: string
   explanation: string
 }
 
@@ -17,18 +17,20 @@ export const simulatedInfarct = {
   }],
 }
 
-export function readInterpretedStructures({ source, structures }: LoadedCase, simulated = false): InterpretedStructure[] {
-  const result = simulated ? simulatedInfarct : source?.interpretability
+export function readInterpretedStructures(structures: AnatomyStructure[], result: unknown): InterpretedStructure[] {
   if (!result || typeof result !== 'object' || !('hotspots' in result) || !Array.isArray(result.hotspots)) return []
   const byId = new Map(structures.map((structure) => [structure.id, structure]))
   const interpreted = new Map<string, InterpretedStructure>()
   for (const entry of result.hotspots as unknown[]) {
+    if (interpreted.size >= 3) break
     if (!entry || typeof entry !== 'object' || !('structureId' in entry) || !('explanation' in entry)
       || typeof entry.structureId !== 'string' || typeof entry.explanation !== 'string') continue
     const structure = byId.get(entry.structureId)
     const explanation = entry.explanation.trim()
-    const cause = 'cause' in entry && typeof entry.cause === 'string' ? entry.cause.trim() : undefined
-    if (structure && explanation && !interpreted.has(structure.id)) interpreted.set(structure.id, { ...structure, cause, explanation })
+    const cause = 'cause' in entry && typeof entry.cause === 'string' ? entry.cause.trim() : ''
+    if (structure && cause && explanation && cause.length <= 500 && explanation.length <= 750 && !interpreted.has(structure.id)) {
+      interpreted.set(structure.id, { ...structure, cause, explanation })
+    }
   }
   return [...interpreted.values()]
 }
@@ -117,27 +119,38 @@ export function HeartHotspotPositions({ anchors, anatomy, layer }: {
   return null
 }
 
-export function HeartHotspots({ structures, layer, showMarker, onDismiss }: {
+export function HeartHotspots({ structures, activeId, simulated, layer, showMarker, onSelect, onDismiss }: {
   structures: InterpretedStructure[]
+  activeId: string
+  simulated: boolean
   layer: RefObject<HTMLDivElement | null>
   showMarker: boolean
+  onSelect: (id: string) => void
   onDismiss: () => void
 }) {
-  const active = structures[0]
+  const active = structures.find(({ id }) => id === activeId)
   if (!active) return null
 
   return <div className="heart-hotspots" ref={layer} onKeyDown={(event) => {
     if (event.key === 'Escape') onDismiss()
   }}>
-    {showMarker && <span className="heart-hotspot" data-heart-hotspot={active.id}
-      style={{ '--hotspot-color': active.color } as CSSProperties} aria-hidden="true">
-      <Plus size={12} />
-    </span>}
+    {showMarker && structures.map(({ id, name, color }) => (
+      <button key={id} type="button" className="heart-hotspot" data-heart-hotspot={id}
+        style={{ '--hotspot-color': color } as CSSProperties}
+        aria-label={`Ver explicación de ${name}`} aria-pressed={id === active.id} onClick={() => onSelect(id)}>
+        <Plus size={12} aria-hidden="true" />
+      </button>
+    ))}
     <div className="heart-hotspot-card" role="region" aria-label={`Interpretación de ${active.name}`}>
       <button type="button" className="heart-hotspot-close" aria-label="Cerrar interpretación" onClick={onDismiss}><X size={15} /></button>
-      <span>Infarto Simulado</span>
+      <span>{simulated ? 'Ejemplo educativo · Infarto simulado' : 'Según el informe de IA'}</span>
+      {structures.length > 1 && <div className="heart-hotspot-choices" role="group" aria-label="Zonas del informe">
+        {structures.map(({ id, name }) => (
+          <button key={id} type="button" onClick={() => onSelect(id)} aria-pressed={id === active.id}>{name}</button>
+        ))}
+      </div>}
       <h3>{active.name}</h3>
-      {active.cause && <p><strong>Causa</strong> {active.cause}</p>}
+      <p><strong>{simulated ? 'Causa simulada' : 'Por qué se señala'}</strong> {active.cause}</p>
       <p>{active.explanation}</p>
     </div>
   </div>

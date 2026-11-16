@@ -10,7 +10,7 @@ import type { Crosshair, LoadedCase } from '../types'
 import { voxelToWorld } from '../utils/spatial'
 import {
   findSurfaceAnchor, HeartHotspots, HeartHotspotPositions, meshStructureId,
-  readInterpretedStructures, simulatedInfarct, type HotspotAnchor,
+  readInterpretedStructures, simulatedInfarct, type HotspotAnchor, type InterpretedStructure,
 } from './HeartHotspots'
 import { createHeartTissueMaterial } from './heartTissue'
 
@@ -23,11 +23,20 @@ export interface HeartViewerProps {
 
 type CameraCommand = 'reset' | 'in' | 'out'
 type ViewMode = 'segments' | 'tissue'
+interface ActiveHotspots {
+  entries: InterpretedStructure[]
+  selectedId: string
+  simulated: boolean
+}
 const infarctStructureId = simulatedInfarct.hotspots[0].structureId
 const infarctScenario = 'simulated-infarct'
 const surroundingOpacity = 0.18
 const shellOpacity = new Map([['heart-wall', 0.36], ['myocardium', 0.78]])
 const frontView = new Vector3(-0.31, -1, 0.19).normalize()
+
+function selectHotspots(entries: InterpretedStructure[], simulated: boolean): ActiveHotspots | null {
+  return entries.length ? { entries, selectedId: entries[0].id, simulated } : null
+}
 
 class ViewerBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
@@ -160,38 +169,51 @@ export const HeartViewer3D = memo(function HeartViewer3D(props: HeartViewerProps
   const canSimulate = canSegment && caseId === 'duke-heart-4d' && structures.some(({ id }) => id === infarctStructureId)
   const startsWithScenario = canSimulate && new URLSearchParams(window.location.search).get('scenario') === infarctScenario
   const [mode, setMode] = useState<ViewMode>('segments')
-  const [simulated, setSimulated] = useState(startsWithScenario)
+  const [hotspots, setHotspots] = useState<ActiveHotspots | null>(() =>
+    startsWithScenario ? selectHotspots(readInterpretedStructures(structures, simulatedInfarct), true) : null
+  )
+  const lastReportId = useRef<string | null>(null)
   const lastScenarioId = useRef<string | null>(null)
 
   useLayoutEffect(() => {
-    if (!canSimulate || window.parent === window) return
-    function showScenario(event: MessageEvent) {
+    if (window.parent === window) return
+    function showInterpretation(event: MessageEvent) {
       if (event.origin !== window.location.origin || event.source !== window.parent) return
       const command = event.data
-      if (command?.type !== 'AIRSTARK_SHOW_SCENARIO' || command.visualScenario !== infarctScenario
-        || typeof command.id !== 'string' || command.id === lastScenarioId.current) return
-      lastScenarioId.current = command.id
-      setSimulated(true)
+      if (typeof command?.id !== 'string') return
+      if (command.type === 'AIRSTARK_SHOW_HOTSPOTS') {
+        if (command.id === lastReportId.current || !Array.isArray(command.interpretability?.hotspots)) return
+        lastReportId.current = command.id
+        const entries = canSegment ? readInterpretedStructures(structures, command.interpretability) : []
+        setHotspots(selectHotspots(entries, false))
+      } else if (canSimulate && command.type === 'AIRSTARK_SHOW_SCENARIO'
+        && command.visualScenario === infarctScenario && command.id !== lastScenarioId.current) {
+        lastScenarioId.current = command.id
+        setHotspots(selectHotspots(readInterpretedStructures(structures, simulatedInfarct), true))
+      }
     }
-    window.addEventListener('message', showScenario)
-    return () => window.removeEventListener('message', showScenario)
-  }, [canSimulate])
+    window.addEventListener('message', showInterpretation)
+    window.parent.postMessage({ type: 'AIRSTARK_HOTSPOTS_READY' }, window.location.origin)
+    return () => window.removeEventListener('message', showInterpretation)
+  }, [canSegment, canSimulate, structures])
   const mesh = frame?.mesh ?? null
-  const focusId = simulated ? infarctStructureId : null
-  const interpreted = useMemo(() => simulated ? readInterpretedStructures(props.manifest, true) : [], [props.manifest, simulated])
+  const focusId = hotspots?.selectedId ?? null
+  const entries = hotspots?.entries
   const anchors = useMemo(() => {
     const points = new Map<string, HotspotAnchor>()
-    if (!mesh || !focusId) return points
-    const meshes: Mesh[] = []
+    if (!mesh || !entries?.length) return points
+    const meshesByStructure = new Map(entries.map(({ id }) => [id, [] as Mesh[]]))
     mesh.updateWorldMatrix(true, true)
     mesh.traverse((object) => {
-      if (object instanceof Mesh && meshStructureId(object) === focusId) meshes.push(object)
+      if (object instanceof Mesh) meshesByStructure.get(meshStructureId(object))?.push(object)
     })
-    const anchor = findSurfaceAnchor(meshes, frontView)
-    if (anchor) points.set(focusId, anchor)
+    for (const [id, meshes] of meshesByStructure) {
+      const anchor = findSurfaceAnchor(meshes, frontView)
+      if (anchor) points.set(id, anchor)
+    }
     return points
-  }, [mesh, focusId])
-  const segmented = canSegment && Boolean(mesh) && (simulated || mode === 'segments')
+  }, [mesh, entries])
+  const segmented = canSegment && Boolean(mesh) && (hotspots !== null || mode === 'segments')
   const anatomy = useRef<Group>(null)
   const hotspotLayer = useRef<HTMLDivElement>(null)
   const commandRef = useRef<((command: CameraCommand) => void) | null>(null)
@@ -203,7 +225,10 @@ export const HeartViewer3D = memo(function HeartViewer3D(props: HeartViewerProps
   }
   function selectMode(next: ViewMode) {
     setMode(next)
-    setSimulated(false)
+    setHotspots(null)
+  }
+  function selectStructure(id: string) {
+    setHotspots((current) => current ? { ...current, selectedId: id } : null)
   }
 
   return <>
@@ -225,12 +250,13 @@ export const HeartViewer3D = memo(function HeartViewer3D(props: HeartViewerProps
           >
             <AnatomyScene {...props} surface={frame?.surface ?? null} mesh={mesh} segmented={segmented}
               focusId={focusId} anatomy={anatomy} commandRef={commandRef} />
-            {simulated && <HeartHotspotPositions anchors={anchors} anatomy={anatomy} layer={hotspotLayer} />}
+            {hotspots && <HeartHotspotPositions anchors={anchors} anatomy={anatomy} layer={hotspotLayer} />}
           </Canvas>
         </ViewerBoundary>}
-        {simulated && <HeartHotspots structures={interpreted} layer={hotspotLayer}
+        {hotspots && <HeartHotspots structures={hotspots.entries} activeId={hotspots.selectedId}
+          simulated={hotspots.simulated} layer={hotspotLayer} onSelect={selectStructure}
           showMarker={props.opacity > 0} onDismiss={() => {
-            setSimulated(false)
+            setHotspots(null)
             container.current?.focus()
           }} />}
         {hasAnatomy && <div className="heart-viewer-tools" aria-label="Controles de cámara">

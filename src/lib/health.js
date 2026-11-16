@@ -1,6 +1,9 @@
 import { getAstronautProfile } from './profile.js';
 import { getCurrentUserId } from './supabase.js';
-import { INFARCT_OUTPUT_MARKER, INFARCT_SCENARIO, isCardiacScenario, scenarioForConsultation } from './cardiacScenario.js';
+import {
+  HOTSPOT_OUTPUT_MARKER, INFARCT_OUTPUT_MARKER, INFARCT_SCENARIO,
+  readCardiacInterpretability, requestsInfarctDemo, supportedCardiacStructures,
+} from './cardiacScenario.js';
 
 export const HEALTH_STORAGE_KEY = 'airstark.healthRecords.v1';
 const CHAT_SESSION_STORAGE_KEY = 'airstark.agentSession.v1';
@@ -196,36 +199,51 @@ function extractResponse(payload) {
       try { return extractResponse(JSON.parse(json)); } catch { /* Keep plain text. */ }
     }
     const lastLineStart = text.lastIndexOf('\n') + 1;
-    if (text.slice(lastLineStart).trim() === INFARCT_OUTPUT_MARKER) {
-      const answer = text.slice(0, lastLineStart).trimEnd();
-      return { answer, visualScenario: answer ? INFARCT_SCENARIO : null };
+    const lastLine = text.slice(lastLineStart).trim();
+    if (lastLine.startsWith(HOTSPOT_OUTPUT_MARKER)) {
+      let interpretability;
+      try {
+        interpretability = readCardiacInterpretability(JSON.parse(lastLine.slice(HOTSPOT_OUTPUT_MARKER.length)));
+      } catch {
+        // The report still displays even if the annotation payload is malformed.
+      }
+      return { answer: text.slice(0, lastLineStart).trimEnd(), interpretability };
     }
-    return { answer: text, visualScenario: null };
+    const answer = lastLine === INFARCT_OUTPUT_MARKER ? text.slice(0, lastLineStart).trimEnd() : text;
+    return { answer };
   }
   if (Array.isArray(payload)) {
     const replies = payload.map(extractResponse);
     return {
       answer: replies.map((reply) => reply.answer).filter(Boolean).join('\n\n'),
-      visualScenario: replies.find((reply) => reply.visualScenario)?.visualScenario ?? null,
+      interpretability: replies.find((reply) => reply.answer && reply.interpretability?.hotspots.length)?.interpretability,
     };
   }
   if (payload && typeof payload === 'object') {
-    const visualScenario = isCardiacScenario(payload.visualScenario) ? payload.visualScenario : null;
+    const interpretability = Object.hasOwn(payload, 'interpretability')
+      ? readCardiacInterpretability(payload.interpretability)
+      : undefined;
     for (const key of ['answer', 'response', 'output', 'message', 'reply', 'text']) {
       if (payload[key] === undefined) continue;
       const reply = extractResponse(payload[key]);
-      if (reply.answer) return { answer: reply.answer, visualScenario: visualScenario ?? reply.visualScenario };
+      if (reply.answer) return { answer: reply.answer, interpretability: interpretability ?? reply.interpretability };
     }
-    return { answer: '', visualScenario: null };
   }
-  return { answer: '', visualScenario: null };
+  return { answer: '' };
 }
 
 export async function askAgent(question, language = 'en') {
   const profile = getAstronautProfile();
   const userId = (await getCurrentUserId()) || profile?.userId || profile?.user_id || null;
 
-  const visualInstructions = `Responde con texto para el astronauta en el idioma solicitado. Si pide una simulación educativa de un infarto en 3D o pregunta por síntomas o diagnóstico, la app puede mostrar un caso cardíaco ficticio junto a la respuesta. No lo uses para afirmar un diagnóstico ni relacionar la arteria resaltada con los datos personales del astronauta. Para activar el caso educativo en otras consultas pertinentes, puedes añadir ${INFARCT_OUTPUT_MARKER} como última línea, sin comillas ni formato.`;
+  const visualInstructions = [
+    'Redacta el informe en el idioma solicitado. Identifica una zona solo si un hallazgo explícito de la evaluación permite ubicarla. Un síntoma, dato general de signos vitales o nivel de riesgo por sí solo no justifica señalar una parte.',
+    'Si la persona pide una demostración de infarto, descríbela como un ejemplo ficticio y deja la lista de zonas del informe vacía.',
+    'Si hay una zona respaldada por el informe, añade al final una línea con el marcador y el JSON, sin bloque de código. Usa hasta tres IDs del modelo y conserva cualquier duda o limitación de la evaluación.',
+    `${HOTSPOT_OUTPUT_MARKER} {"hotspots":[{"structureId":"ID_DEL_MODELO","cause":"Qué hallazgo del informe apunta a esa parte","explanation":"Qué significa para el astronauta en palabras comunes"}]}`,
+    'Explica cada zona en una o dos frases cortas, sin siglas ni términos especializados. Habla de una posible causa si el hallazgo no es concluyente. Si el informe no identifica una zona o si los datos son insuficientes, devuelve `{"hotspots":[]}` con el marcador.',
+    `Partes disponibles en el modelo: ${JSON.stringify(supportedCardiacStructures)}`,
+  ].join('\n');
   const chatInput = [userId && `user_id: ${userId}`, visualInstructions, `Mensaje del astronauta:\n${question}`].filter(Boolean).join('\n\n');
   const chatUrl = new URL(AGENT_WEBHOOK);
   chatUrl.searchParams.set('action', 'sendMessage');
@@ -241,6 +259,7 @@ export async function askAgent(question, language = 'en') {
     crew_id: profile?.crewId || 'A-9K21',
     language,
     supportedVisualScenarios: [INFARCT_SCENARIO],
+    supportedCardiacStructures,
   };
 
   const response = await fetch(chatUrl, {
@@ -254,14 +273,17 @@ export async function askAgent(question, language = 'en') {
   try { payload = body ? JSON.parse(body) : ''; } catch { /* plain-text response */ }
   const reply = extractResponse(payload);
   if (reply.answer) {
+    const isDemo = requestsInfarctDemo(question);
     return {
-      ...reply,
-      visualScenario: reply.visualScenario ?? scenarioForConsultation(question, reply.answer),
+      answer: reply.answer,
+      interpretability: isDemo ? { hotspots: [] } : (reply.interpretability ?? { hotspots: [] }),
+      visualScenario: isDemo ? INFARCT_SCENARIO : null,
     };
   }
   return {
     answer: language === 'es' ? 'El asistente respondió sin contenido.' : 'The assistant returned an empty response.',
     visualScenario: null,
+    interpretability: { hotspots: [] },
   };
 }
 

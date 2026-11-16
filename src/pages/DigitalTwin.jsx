@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { INFARCT_SCENARIO, isCardiacScenario } from '../lib/cardiacScenario.js';
+import { getSelectedCardiacReport, INFARCT_SCENARIO, isCardiacScenario } from '../lib/cardiacScenario.js';
+import { useCardiacHotspotsBridge } from '../hooks/useCardiacHotspotsBridge.js';
 import { PageHeading } from '../components/ui.jsx';
 import { copy, useLanguage } from '../i18n.jsx';
 import Icon from '../components/Icon.jsx';
@@ -9,10 +10,13 @@ export default function DigitalTwin() {
   const { language } = useLanguage();
   const t = copy[language].twin;
   const containerRef = useRef(null);
+  const iframeRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { state } = useLocation();
+  const report = getSelectedCardiacReport(state?.cardiacReportId);
+  const sendToViewer = useCardiacHotspotsBridge(iframeRef, report);
   const simulatorUrl = '/cardiac-simulator/index.html';
-  const scenario = isCardiacScenario(state?.cardiacScenario) ? INFARCT_SCENARIO : null;
+  const scenario = !report && isCardiacScenario(state?.cardiacScenario) ? INFARCT_SCENARIO : null;
   const viewerParams = new URLSearchParams({ view: 'workspace' });
   if (scenario) viewerParams.set('scenario', scenario);
 
@@ -65,7 +69,7 @@ export default function DigitalTwin() {
               <Icon name="cube" size={14} />
               <span>{isFullscreen ? (t.exitFullscreen || 'Salir') : (t.fullscreen || 'Pantalla completa')}</span>
             </button>
-            <a
+            {!report && <a
               href={scenario ? `${simulatorUrl}?scenario=${scenario}` : simulatorUrl}
               target="_blank"
               rel="noreferrer"
@@ -74,14 +78,17 @@ export default function DigitalTwin() {
             >
               <Icon name="arrowRight" size={14} />
               <span>{t.newTab || 'Nueva pestaña'}</span>
-            </a>
+            </a>}
           </div>
         </div>
 
         {/* Embedded 3D Interactive Simulator Frame */}
         <div className="twin-frame-wrapper" id="airstark-digital-twin-root">
           <iframe
+            key={report?.id ?? scenario ?? 'base'}
+            ref={iframeRef}
             src={`${simulatorUrl}?${viewerParams}`}
+            onLoad={sendToViewer}
             title="AIRSTARK 3D Cardiac Simulator"
             className="twin-simulator-iframe"
             allow="fullscreen; accelerometer; gyroscope"

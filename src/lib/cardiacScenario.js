@@ -1,39 +1,58 @@
 export const INFARCT_SCENARIO = 'simulated-infarct';
 export const INFARCT_OUTPUT_MARKER = `[AIRSTARK_3D:${INFARCT_SCENARIO}]`;
+export const HOTSPOT_OUTPUT_MARKER = '[AIRSTARK_HOTSPOTS]';
+
+export const supportedCardiacStructures = {
+  'left-ventricle': 'Ventrículo izquierdo',
+  'right-ventricle': 'Ventrículo derecho',
+  'left-atrium': 'Aurícula izquierda',
+  'right-atrium': 'Aurícula derecha',
+  myocardium: 'Miocardio',
+  'heart-wall': 'Pared cardíaca',
+  aorta: 'Aorta',
+  'pulmonary-artery': 'Arteria pulmonar',
+  'right-coronary-artery': 'Coronaria derecha',
+  'left-coronary-artery': 'Coronaria izquierda',
+};
 
 export function isCardiacScenario(value) {
   return value === INFARCT_SCENARIO;
 }
 
-const infarctDemo = /\b(infarto(?:s)?|ataque al corazon|heart attack|myocardial infarction)\b/;
-const rhythmTopic = /\b(arritmias?|taquicardia|bradicardia|arrhythmias?|tachycardia|bradycardia)\b/;
-const heartTopic = /\b(corazon|cardiac[oa]s?|cardiovascular(?:es)?|coronari[oa]s?|heart|cardiac|coronary)\b/;
-const consultation = /\b(sintomas?|diagno\w+|diagonst\w+|symptoms?|que (?:podria|puede) ser|que (?:podria|puedo) tener|que tengo|what (?:might|could) (?:this|it) be|what could i have|what do i have)\b/;
-const symptomWording = /\b(senales?|signos?|dolor(?:es)?|duele|molestias?|opresion|signs?|pain|hurts?|pressure|tightness|discomfort)\b/;
-const conditionConcern = /\b(tengo|tener|puede ser|podria ser|como saber|do i have|could (?:i|this|it))\b/;
-const symptomMention = /\b(palpitaciones|palpitations|chest (?:pain|pressure|tightness|discomfort)|(?:dolor(?:es)?|duele|molestias?|opresion|presion) (?:\w+ ){0,3}(?:pecho|torax))\b/;
-const demoRequest = /\b(simul\w*|3d|muestra\w*|visualiz\w*|show|demonstrat\w*)\b/;
-const cardiacAssessment = /\b(?:(?:evaluacion|valoracion|diagnostico) (?:cardiovascular|cardiac[oa])|(?:cardiovascular|cardiac) (?:assessment|evaluation|diagnosis))\b/;
-
-function normalize(text) {
-  return text.toLowerCase().normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
+export function hasReportHotspots(interpretability) {
+  return Array.isArray(interpretability?.hotspots) && interpretability.hotspots.length > 0;
 }
 
-export function scenarioForConsultation(question, answer) {
-  const text = normalize(question);
-  // This selects an educational illustration by wording, independent of the agent's assessment.
-  const mentionsInfarct = infarctDemo.test(text);
-  const mentionsCondition = mentionsInfarct || rhythmTopic.test(text);
-  if (consultation.test(text)
-    || symptomMention.test(text)
-    || ((mentionsCondition || heartTopic.test(text)) && symptomWording.test(text))
-    || (mentionsCondition && conditionConcern.test(text))
-    || (mentionsInfarct && demoRequest.test(text))
-    || cardiacAssessment.test(normalize(answer))) {
-    return INFARCT_SCENARIO;
+// Keep the report available for navigation within this tab without persisting its text.
+let selectedReport = null;
+
+export function selectCardiacReport(id, interpretability) {
+  selectedReport = { id, interpretability };
+}
+
+export function getSelectedCardiacReport(id) {
+  return selectedReport?.id === id ? selectedReport : null;
+}
+
+export function readCardiacInterpretability(data) {
+  const hotspots = [];
+  if (!Array.isArray(data?.hotspots)) return { hotspots };
+  const seen = new Set();
+  for (const entry of data.hotspots) {
+    if (typeof entry?.structureId !== 'string' || !Object.hasOwn(supportedCardiacStructures, entry.structureId)) continue;
+    const { structureId } = entry;
+    const cause = typeof entry.cause === 'string' ? entry.cause.trim() : '';
+    const explanation = typeof entry.explanation === 'string' ? entry.explanation.trim() : '';
+    if (!cause || !explanation || cause.length > 500 || explanation.length > 750 || seen.has(structureId)) continue;
+    hotspots.push({ structureId, cause, explanation });
+    seen.add(structureId);
+    if (hotspots.length === 3) break;
   }
-  return null;
+  return { hotspots };
+}
+
+export function requestsInfarctDemo(question) {
+  const text = question.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+  return /\b(infartos?|ataque al corazon|heart attack|myocardial infarction)\b/.test(text)
+    && /\b(simul\w*|demostra\w*|demonstrat\w*|educativ\w*|3d)\b/.test(text);
 }

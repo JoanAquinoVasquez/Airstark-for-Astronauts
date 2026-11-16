@@ -53,29 +53,40 @@ El panel **AIRSTARK Copilot** usa el webhook definido en `src/lib/health.js`; la
   "user_id": "uuid-o-id-del-usuario",
   "message": "¿Qué indicadores puedo consultar?",
   "chatInput": "user_id: uuid-o-id-del-usuario\n\nInstrucciones del formato de respuesta…\n\nMensaje del astronauta:\n¿Qué indicadores puedo consultar?",
-  "supportedVisualScenarios": ["simulated-infarct"]
+  "supportedVisualScenarios": ["simulated-infarct"],
+  "supportedCardiacStructures": { "left-ventricle": "Ventrículo izquierdo", "aorta": "Aorta" }
 }
 ```
 
 El contrato usa los campos estándar de un chat n8n (`action`, `sessionId`, `chatInput`) junto con `user_id`, `userId`, `message` y `question` en el cuerpo del JSON. La respuesta puede ser texto plano o JSON con un campo `answer`, `response`, `output`, `message`, `reply` o `text`. El endpoint debe aceptar solicitudes `POST` desde el dominio de Vercel y habilitar CORS para `Content-Type`.
 
-El nodo agente de n8n puede seguir usando su campo `output` de texto. Tras recibir una respuesta, la app abre el caso educativo cuando la pregunta pide una simulación de infarto o consulta por síntomas o diagnóstico, incluso con preguntas generales como «¿Cuáles son los síntomas?» o «¿Qué diagnóstico puede ser?». El agente también puede activar la tarjeta con el marcador en una línea separada:
+El nodo agente de n8n puede seguir usando su campo `output` de texto. Para marcar una zona del corazón, debe enviar el informe y añadir una última línea con las zonas que el informe identifica explícitamente. Ejemplo del formato:
 
 ```text
-Te muestro un caso simulado que resalta la arteria coronaria izquierda.
-[AIRSTARK_3D:simulated-infarct]
+Aquí va el informe para el astronauta.
+[AIRSTARK_HOTSPOTS] {"hotspots":[{"structureId":"left-ventricle","cause":"Hallazgo concreto que indica esta zona","explanation":"Explicación breve en palabras comunes"}]}
 ```
 
-La app retira el marcador del chat y de la lectura en voz alta. Para una conversación normal, el agente responde en texto sin el marcador. El webhook también admite el formato estructurado equivalente:
+Usa hasta tres IDs de `supportedCardiacStructures`. En `cause`, indica qué hallazgo del informe lleva a señalar esa zona. En `explanation`, explica qué significa en una o dos frases sencillas y conserva la incertidumbre. Si el informe no localiza una causa, envía `{"hotspots":[]}`. Los síntomas, las constantes vitales y el nivel de riesgo por sí solos no identifican una parte del órgano.
+
+La app retira el marcador del chat y de la lectura por voz. El webhook también puede devolver un objeto:
 
 ```json
 {
-  "answer": "Te muestro un caso educativo. La tarjeta explica qué estructura se resalta en esta simulación.",
-  "visualScenario": "simulated-infarct"
+  "answer": "Aquí va el informe para el astronauta.",
+  "interpretability": {
+    "hotspots": [
+      {
+        "structureId": "left-ventricle",
+        "cause": "Hallazgo concreto que indica esta zona",
+        "explanation": "Explicación breve en palabras comunes"
+      }
+    ]
+  }
 }
 ```
 
-Monitor en vivo abre la tarjeta con la respuesta. El enlace **Ver simulación en 3D** de la respuesta abre el mismo caso en Gemelo digital 3D. Las instrucciones del marcador viajan en `chatInput`. La detección por el texto de la pregunta también funciona si el flujo de n8n usa `message` o `question` y responde sin el marcador. El caso educativo es independiente de los síntomas y las mediciones del astronauta.
+El Monitor en vivo y el Asistente abren los puntos del informe al llegar la respuesta. El enlace del chat lleva esos mismos puntos al Gemelo digital 3D. Las instrucciones viajan en `chatInput`; si el nodo agente usa `message` o `question`, pon también estas instrucciones en su mensaje de sistema. Sin anotaciones válidas, el visor queda sin marcas. La simulación de infarto sigue disponible cuando se pide expresamente como demostración.
 
 ## Flujo para el siguiente módulo
 
