@@ -8,17 +8,22 @@ export function isCardiacScenario(value) {
 const infarctDemo = /\b(infarto(?:s)?|ataque al corazon|heart attack|myocardial infarction)\b/;
 const rhythmTopic = /\b(arritmias?|taquicardia|bradicardia|arrhythmias?|tachycardia|bradycardia)\b/;
 const heartTopic = /\b(corazon|cardiac[oa]s?|cardiovascular(?:es)?|coronari[oa]s?|heart|cardiac|coronary)\b/;
-const consultation = /\b(sintomas?|diagnos\w*|symptoms?|que (?:podria|puede) ser|que (?:podria|puedo) tener|que tengo|what (?:might|could) (?:this|it) be|what could i have|what do i have)\b/;
+const consultation = /\b(sintomas?|diagno\w+|diagonst\w+|symptoms?|que (?:podria|puede) ser|que (?:podria|puedo) tener|que tengo|what (?:might|could) (?:this|it) be|what could i have|what do i have)\b/;
 const symptomWording = /\b(senales?|signos?|dolor(?:es)?|duele|molestias?|opresion|signs?|pain|hurts?|pressure|tightness|discomfort)\b/;
 const conditionConcern = /\b(tengo|tener|puede ser|podria ser|como saber|do i have|could (?:i|this|it))\b/;
 const symptomMention = /\b(palpitaciones|palpitations|chest (?:pain|pressure|tightness|discomfort)|(?:dolor(?:es)?|duele|molestias?|opresion|presion) (?:\w+ ){0,3}(?:pecho|torax))\b/;
 const demoRequest = /\b(simul\w*|3d|muestra\w*|visualiz\w*|show|demonstrat\w*)\b/;
+const cardiacAssessment = /\b(?:(?:evaluacion|valoracion|diagnostico) (?:cardiovascular|cardiac[oa])|(?:cardiovascular|cardiac) (?:assessment|evaluation|diagnosis))\b/;
 
-export function scenarioForConsultation(question) {
-  const text = question.toLowerCase().normalize('NFD')
+function normalize(text) {
+  return text.toLowerCase().normalize('NFD')
     .replace(/\p{M}/gu, '')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
+}
+
+export function scenarioForConsultation(question, answer) {
+  const text = normalize(question);
   // This selects an educational illustration by wording, independent of the agent's assessment.
   const mentionsInfarct = infarctDemo.test(text);
   const mentionsCondition = mentionsInfarct || rhythmTopic.test(text);
@@ -26,7 +31,8 @@ export function scenarioForConsultation(question) {
     || symptomMention.test(text)
     || ((mentionsCondition || heartTopic.test(text)) && symptomWording.test(text))
     || (mentionsCondition && conditionConcern.test(text))
-    || (mentionsInfarct && demoRequest.test(text))) {
+    || (mentionsInfarct && demoRequest.test(text))
+    || cardiacAssessment.test(normalize(answer))) {
     return INFARCT_SCENARIO;
   }
   return null;

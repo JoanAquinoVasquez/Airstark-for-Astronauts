@@ -256,7 +256,7 @@ export async function askAgent(question, language = 'en') {
   if (reply.answer) {
     return {
       ...reply,
-      visualScenario: reply.visualScenario ?? scenarioForConsultation(question),
+      visualScenario: reply.visualScenario ?? scenarioForConsultation(question, reply.answer),
     };
   }
   return {
