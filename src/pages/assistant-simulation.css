@@ -1,0 +1,59 @@
+.assistant-with-scenario {
+  display: grid;
+  align-items: start;
+  gap: 16px;
+}
+
+.assistant-with-scenario > * {
+  min-width: 0;
+}
+
+.assistant-simulation-preview.panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.assistant-simulation-preview > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.assistant-simulation-preview h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.assistant-simulation-preview button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.assistant-simulation-preview button:hover {
+  border-color: var(--border-bright);
+  color: var(--cyan);
+}
+
+.assistant-simulation-preview iframe {
+  display: block;
+  width: 100%;
+  height: clamp(400px, 57vh, 600px);
+  border: 0;
+  background: var(--bg);
+}
+
+@media (min-width: 1080px) {
+  .assistant-with-scenario {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}

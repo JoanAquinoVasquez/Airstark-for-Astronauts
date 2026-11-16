@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "sync:simulator": "npm --prefix GD-con-Simulacion/frontend run build && node scripts/sync-simulator.mjs"
+    "sync:simulator": "npm --prefix cardiac-simulator run build && node scripts/sync-simulator.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",

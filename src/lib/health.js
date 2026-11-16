@@ -1,5 +1,6 @@
 import { getAstronautProfile } from './profile.js';
 import { getCurrentUserId } from './supabase.js';
+import { INFARCT_OUTPUT_MARKER, INFARCT_SCENARIO, isCardiacScenario, scenarioForConsultation } from './cardiacScenario.js';
 
 export const HEALTH_STORAGE_KEY = 'airstark.healthRecords.v1';
 const CHAT_SESSION_STORAGE_KEY = 'airstark.agentSession.v1';
@@ -188,23 +189,44 @@ function getChatSessionId() {
 }
 
 function extractResponse(payload) {
-  if (typeof payload === 'string') return payload.trim();
-  if (Array.isArray(payload)) return payload.map(extractResponse).filter(Boolean).join('\n\n');
-  if (payload && typeof payload === 'object') {
-    for (const key of ['answer', 'response', 'output', 'message', 'reply', 'text']) {
-      if (payload[key] !== undefined) { const value = extractResponse(payload[key]); if (value) return value; }
+  if (typeof payload === 'string') {
+    const text = payload.trim();
+    const json = text.match(/^```(?:json)?\s*([\s\S]+?)\s*```$/i)?.[1] ?? text;
+    if (json.startsWith('{') || json.startsWith('[')) {
+      try { return extractResponse(JSON.parse(json)); } catch { /* Keep plain text. */ }
     }
-    return JSON.stringify(payload, null, 2);
+    const lastLineStart = text.lastIndexOf('\n') + 1;
+    if (text.slice(lastLineStart).trim() === INFARCT_OUTPUT_MARKER) {
+      const answer = text.slice(0, lastLineStart).trimEnd();
+      return { answer, visualScenario: answer ? INFARCT_SCENARIO : null };
+    }
+    return { answer: text, visualScenario: null };
   }
-  return String(payload ?? '');
+  if (Array.isArray(payload)) {
+    const replies = payload.map(extractResponse);
+    return {
+      answer: replies.map((reply) => reply.answer).filter(Boolean).join('\n\n'),
+      visualScenario: replies.find((reply) => reply.visualScenario)?.visualScenario ?? null,
+    };
+  }
+  if (payload && typeof payload === 'object') {
+    const visualScenario = isCardiacScenario(payload.visualScenario) ? payload.visualScenario : null;
+    for (const key of ['answer', 'response', 'output', 'message', 'reply', 'text']) {
+      if (payload[key] === undefined) continue;
+      const reply = extractResponse(payload[key]);
+      if (reply.answer) return { answer: reply.answer, visualScenario: visualScenario ?? reply.visualScenario };
+    }
+    return { answer: '', visualScenario: null };
+  }
+  return { answer: '', visualScenario: null };
 }
 
 export async function askAgent(question, language = 'en') {
   const profile = getAstronautProfile();
   const userId = (await getCurrentUserId()) || profile?.userId || profile?.user_id || null;
 
-  // Prompt simplificado: solo user_id y el mensaje entrante
-  const chatInput = userId ? `user_id: ${userId}\n${question}` : question;
+  const visualInstructions = `Responde con texto para el astronauta en el idioma solicitado. Si pide una simulación educativa de un infarto en 3D o pregunta por síntomas o diagnóstico, la app puede mostrar un caso cardíaco ficticio junto a la respuesta. No lo uses para afirmar un diagnóstico ni relacionar la arteria resaltada con los datos personales del astronauta. Para activar el caso educativo en otras consultas pertinentes, puedes añadir ${INFARCT_OUTPUT_MARKER} como última línea, sin comillas ni formato.`;
+  const chatInput = [userId && `user_id: ${userId}`, visualInstructions, `Mensaje del astronauta:\n${question}`].filter(Boolean).join('\n\n');
   const chatUrl = new URL(AGENT_WEBHOOK);
   chatUrl.searchParams.set('action', 'sendMessage');
 
@@ -218,6 +240,7 @@ export async function askAgent(question, language = 'en') {
     userId: userId,
     crew_id: profile?.crewId || 'A-9K21',
     language,
+    supportedVisualScenarios: [INFARCT_SCENARIO],
   };
 
   const response = await fetch(chatUrl, {
@@ -229,7 +252,17 @@ export async function askAgent(question, language = 'en') {
   if (!response.ok) throw new Error(`Webhook request failed: ${response.status}`);
   let payload = body;
   try { payload = body ? JSON.parse(body) : ''; } catch { /* plain-text response */ }
-  return extractResponse(payload) || (language === 'es' ? 'El asistente respondió sin contenido.' : 'The assistant returned an empty response.');
+  const reply = extractResponse(payload);
+  if (reply.answer) {
+    return {
+      ...reply,
+      visualScenario: reply.visualScenario ?? scenarioForConsultation(question),
+    };
+  }
+  return {
+    answer: language === 'es' ? 'El asistente respondió sin contenido.' : 'The assistant returned an empty response.',
+    visualScenario: null,
+  };
 }
 
 export function exportRecords(records) {

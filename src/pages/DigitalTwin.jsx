@@ -1,4 +1,6 @@
 import { useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { INFARCT_SCENARIO, isCardiacScenario } from '../lib/cardiacScenario.js';
 import { PageHeading } from '../components/ui.jsx';
 import { copy, useLanguage } from '../i18n.jsx';
 import Icon from '../components/Icon.jsx';
@@ -8,11 +10,11 @@ export default function DigitalTwin() {
   const t = copy[language].twin;
   const containerRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [sourceMode, setSourceMode] = useState('embedded'); // 'embedded' | 'live'
-
-  const simulatorUrl = sourceMode === 'live'
-    ? 'http://127.0.0.1:5173'
-    : '/cardiac-simulator/index.html';
+  const { state } = useLocation();
+  const simulatorUrl = '/cardiac-simulator/index.html';
+  const scenario = isCardiacScenario(state?.cardiacScenario) ? INFARCT_SCENARIO : null;
+  const viewerParams = new URLSearchParams({ view: 'workspace' });
+  if (scenario) viewerParams.set('scenario', scenario);
 
   function toggleFullscreen() {
     if (!containerRef.current) return;
@@ -64,7 +66,7 @@ export default function DigitalTwin() {
               <span>{isFullscreen ? (t.exitFullscreen || 'Salir') : (t.fullscreen || 'Pantalla completa')}</span>
             </button>
             <a
-              href={simulatorUrl}
+              href={scenario ? `${simulatorUrl}?scenario=${scenario}` : simulatorUrl}
               target="_blank"
               rel="noreferrer"
               className="twin-action-button"
@@ -79,7 +81,7 @@ export default function DigitalTwin() {
         {/* Embedded 3D Interactive Simulator Frame */}
         <div className="twin-frame-wrapper" id="airstark-digital-twin-root">
           <iframe
-            src={simulatorUrl}
+            src={`${simulatorUrl}?${viewerParams}`}
             title="AIRSTARK 3D Cardiac Simulator"
             className="twin-simulator-iframe"
             allow="fullscreen; accelerometer; gyroscope"

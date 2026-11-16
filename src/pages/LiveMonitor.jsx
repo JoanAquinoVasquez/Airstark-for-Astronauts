@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState, useCallback, memo } from 'react';
 import { copy, useLanguage } from '../i18n.jsx';
 import Icon from '../components/Icon.jsx';
+import CardiacScenarioLink from '../components/CardiacScenarioLink.jsx';
+import AssistantMessageContent from '../components/AssistantMessageContent.jsx';
 import { askAgent } from '../lib/health.js';
 import { speakText, useVoiceRecognition } from '../hooks/useVoiceRecognition.js';
 import { exportRecords, formatDate, getCurrentRecords, getSavedRecords, localizeStress, readSmartwatchCsv, saveRecords, stressLabel } from '../lib/health.js';
@@ -94,15 +96,7 @@ const LiveECGTrace = memo(function LiveECGTrace({ phase, bpm, playing }) {
 });
 
 // ─── Inline Compact AI Assistant ──────────────────────────────────────────────
-function renderMessage(text) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-    part.startsWith('**') && part.endsWith('**')
-      ? <strong key={i}>{part.slice(2, -2)}</strong>
-      : part
-  );
-}
-
-function CompactAssistant({ language }) {
+function CompactAssistant({ language, onScenario }) {
   const t = copy[language].assistant;
   const voice = useVoiceRecognition(language);
   const [messages, setMessages] = useState([{ id: 'welcome', role: 'assistant', text: t.welcome }]);
@@ -128,8 +122,10 @@ function CompactAssistant({ language }) {
     setQuestion(''); setPending(true); pendingRef.current = true;
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'user', text: clean }]);
     try {
-      const answer = await askAgent(clean, language);
-      setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'assistant', text: answer }]);
+      const { answer, visualScenario } = await askAgent(clean, language);
+      const id = crypto.randomUUID();
+      setMessages((m) => [...m, { id, role: 'assistant', text: answer, visualScenario }]);
+      if (visualScenario) onScenario({ id, visualScenario });
       if (fromCall && callRef.current) speakText(answer, language, beginListening);
     } catch {
       setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'assistant', error: true, text: t.failed }]);
@@ -188,7 +184,7 @@ function CompactAssistant({ language }) {
           <div key={msg.id} className={`monitor-chat-msg ${msg.role}${msg.error ? ' error' : ''}`}>
             {msg.role === 'assistant' && <span className="monitor-chat-avatar"><Icon name="assistant" size={12} /></span>}
             <div className={`monitor-chat-bubble ${msg.role}`}>
-              {msg.role === 'assistant' ? renderMessage(msg.text) : msg.text}
+              {msg.role === 'assistant' ? <AssistantMessageContent text={msg.text} language={language} /> : msg.text}
               {msg.role === 'assistant' && (
                 <button
                   type="button"
@@ -200,6 +196,7 @@ function CompactAssistant({ language }) {
                   <Icon name="volume" size={11} />
                 </button>
               )}
+              <CardiacScenarioLink scenario={msg.visualScenario} language={language} />
             </div>
           </div>
         ))}
@@ -324,6 +321,7 @@ export default function LiveMonitor() {
   const [phase, setPhase] = useState(0);
   const iframeRef = useRef(null);
   const [iframeReady, setIframeReady] = useState(false);
+  const [scenarioCommand, setScenarioCommand] = useState(null);
 
   // ─── Estados de Web Bluetooth BLE (Sincronizados con el Singleton Global) ──
   const [bleState, setBleState] = useState(() => getBleState());
@@ -343,22 +341,20 @@ export default function LiveMonitor() {
   const [csvFileName, setCsvFileName] = useState('');
   const fileInputRef = useRef(null);
 
-  // Sync BPM and Playing state to cardiac simulator iframe
-  const postToSimulator = useCallback((newBpm) => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    try {
-      iframe.contentWindow?.postMessage({ type: 'AIRSTARK_SET_BPM', bpm: newBpm }, '*');
-    } catch {
-      // Cross-origin fallback
-    }
-  }, []);
+  const postToSimulator = useCallback(() => {
+    const frameWindow = iframeRef.current?.contentWindow;
+    frameWindow?.postMessage({
+      type: 'AIRSTARK_SET_BPM', bpm, playing,
+    }, window.location.origin);
+    if (scenarioCommand) frameWindow?.postMessage({
+      type: 'AIRSTARK_SHOW_SCENARIO', ...scenarioCommand,
+    }, window.location.origin);
+  }, [bpm, playing, scenarioCommand]);
 
   const changeBpm = useCallback((val) => {
     const num = Math.min(180, Math.max(40, Math.round(val)));
     setBpm(num);
-    postToSimulator(num);
-  }, [postToSimulator]);
+  }, []);
 
   // Suscribirse a la conexión BLE global persistente
   useEffect(() => {
@@ -457,10 +453,14 @@ export default function LiveMonitor() {
   }, [playing, bpm]);
 
   useEffect(() => {
-    if (iframeReady) {
-      postToSimulator(bpm);
+    function onSimulatorReady(event) {
+      if (event.origin !== window.location.origin || event.source !== iframeRef.current?.contentWindow) return;
+      if (event.data?.type === 'AIRSTARK_SIMULATOR_READY') postToSimulator();
     }
-  }, [iframeReady, bpm, postToSimulator]);
+    window.addEventListener('message', onSimulatorReady);
+    if (iframeReady) postToSimulator();
+    return () => window.removeEventListener('message', onSimulatorReady);
+  }, [iframeReady, postToSimulator]);
 
   // Métricas calculadas con los algoritmos de BPM-por-minuto
   const cardiacZone = computeCardiacZone(bpm);
@@ -628,7 +628,7 @@ export default function LiveMonitor() {
               className="monitor-heart-iframe"
               onLoad={() => {
                 setIframeReady(true);
-                postToSimulator(bpm);
+                postToSimulator();
               }}
               allow="fullscreen"
             />
@@ -648,7 +648,7 @@ export default function LiveMonitor() {
             Abajo: Historial de mediciones
             ══════════════════════════════════════════════════════════════ */}
         <section className="monitor-col-panel monitor-right-col" aria-label="Asistente de IA e Historial">
-          <CompactAssistant language={language} />
+          <CompactAssistant language={language} onScenario={setScenarioCommand} />
         </section>
       </div>
     </div>

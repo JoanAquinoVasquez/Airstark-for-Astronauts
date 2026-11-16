@@ -4,12 +4,27 @@ import { PageHeading } from '../components/ui.jsx';
 import { copy, useLanguage } from '../i18n.jsx';
 import { speakText, useVoiceRecognition } from '../hooks/useVoiceRecognition.js';
 import Icon from '../components/Icon.jsx';
+import CardiacScenarioLink from '../components/CardiacScenarioLink.jsx';
+import AssistantMessageContent from '../components/AssistantMessageContent.jsx';
+import { isCardiacScenario } from '../lib/cardiacScenario.js';
+import './assistant-simulation.css';
 
-function renderMessage(text) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) return <strong key={index}>{part.slice(2, -2)}</strong>;
-    return part;
-  });
+function SimulationPreview({ scenario, language, onDismiss }) {
+  const title = language === 'en' ? 'Educational cardiac simulation' : 'Simulación cardíaca educativa';
+  const dismissLabel = language === 'en' ? 'Dismiss simulation' : 'Cerrar simulación';
+  const params = new URLSearchParams({ view: 'heart-only', scenario });
+
+  return (
+    <aside className="panel assistant-simulation-preview" aria-labelledby="assistant-simulation-title">
+      <header>
+        <h2 id="assistant-simulation-title">{title}</h2>
+        <button type="button" aria-label={dismissLabel} title={dismissLabel} onClick={onDismiss}>
+          <Icon name="close" size={16} />
+        </button>
+      </header>
+      <iframe src={`/cardiac-simulator/index.html?${params}`} title={title} allowFullScreen />
+    </aside>
+  );
 }
 
 export default function Assistant() {
@@ -20,6 +35,7 @@ export default function Assistant() {
   const [question, setQuestion] = useState('');
   const [pending, setPending] = useState(false);
   const [callActive, setCallActive] = useState(false);
+  const [simulation, setSimulation] = useState(null);
   const bottom = useRef(null);
   const callRef = useRef(false);
   const pendingRef = useRef(false);
@@ -39,8 +55,10 @@ export default function Assistant() {
     setQuestion(''); setPending(true); pendingRef.current = true;
     setMessages((items) => [...items, { id: crypto.randomUUID(), role: 'user', text: clean }]);
     try {
-      const answer = await askAgent(clean, language);
-      setMessages((items) => [...items, { id: crypto.randomUUID(), role: 'assistant', text: answer }]);
+      const { answer, visualScenario } = await askAgent(clean, language);
+      const id = crypto.randomUUID();
+      setMessages((items) => [...items, { id, role: 'assistant', text: answer, visualScenario }]);
+      if (isCardiacScenario(visualScenario)) setSimulation({ id, scenario: visualScenario });
       if (fromCall && callRef.current) speakText(answer, language, beginListening);
     } catch (error) {
       console.error('AIRSTARK Copilot request failed.', error);
@@ -58,8 +76,7 @@ export default function Assistant() {
     callRef.current = true; setCallActive(true); beginListening();
   }
 
-  return <>
-    <PageHeading eyebrow={t.eyebrow} title={t.title} description={t.description} />
+  const chatPanel = (
     <section className={`panel assistant-panel assistant-page-panel${callActive ? ' call-active' : ''}`}>
       <div className="voice-call-bar">
         <div className="voice-call-copy"><span className={`call-status-dot${callActive ? ' active' : ''}`} /><div><strong>{callActive ? t.callLive : t.callReady}</strong><small>{callActive ? t.callHint : t.callIntro}</small></div></div>
@@ -67,7 +84,24 @@ export default function Assistant() {
       </div>
       {!voice.supported && <p className="call-unavailable">{copy[language].voice.unavailable}</p>}
       <div className="chat-window assistant-chat-window" role="log" aria-live="polite" aria-label={t.aria}>
-        {messages.map((message) => <div className={`chat-message ${message.role}${message.error ? ' error' : ''}`} key={message.id}>{message.role === 'assistant' && <span className="chat-avatar"><Icon name="assistant" size={15} /></span>}<div className={`chat-bubble ${message.role === 'user' ? 'user-bubble' : 'assistant-bubble'}`}>{message.role === 'assistant' ? renderMessage(message.text) : message.text}{message.role === 'assistant' && <button type="button" className="speak-button" onClick={() => speakText(message.text, language)} aria-label={language === 'en' ? 'Read response aloud' : 'Leer respuesta en voz alta'} title={language === 'en' ? 'Read aloud' : 'Leer en voz alta'}><Icon name="volume" size={13} /></button>}</div></div>)}
+        {messages.map((message) => (
+          <div className={`chat-message ${message.role}${message.error ? ' error' : ''}`} key={message.id}>
+            {message.role === 'assistant' && <span className="chat-avatar"><Icon name="assistant" size={15} /></span>}
+            <div className={`chat-bubble ${message.role === 'user' ? 'user-bubble' : 'assistant-bubble'}`}>
+              {message.role === 'assistant' ? (
+                <AssistantMessageContent text={message.text} language={language} />
+              ) : message.text}
+              <CardiacScenarioLink scenario={message.visualScenario} language={language} />
+              {message.role === 'assistant' && (
+                <button type="button" className="speak-button" onClick={() => speakText(message.text, language)}
+                  aria-label={language === 'en' ? 'Read response aloud' : 'Leer respuesta en voz alta'}
+                  title={language === 'en' ? 'Read aloud' : 'Leer en voz alta'}>
+                  <Icon name="volume" size={13} />
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
         {pending && <div className="chat-message assistant pending"><span className="chat-avatar"><Icon name="assistant" size={15} /></span><div className="chat-bubble assistant-bubble">{t.pending} <span className="typing-dots"><i /><i /><i /></span></div></div>}
         <div ref={bottom} />
       </div>
@@ -76,5 +110,22 @@ export default function Assistant() {
       {voice.listening && <div className="voice-feedback">{callActive ? t.listeningCall : copy[language].voice.listening}</div>}{voice.error && <div className="voice-feedback error">{voice.error}</div>}
       <div className="chat-footnote"><Icon name="arrowRight" size={12} /> {t.footnote}<br /><Icon name="microphone" size={12} /> {t.safetyNote}</div>
     </section>
-  </>;
+  );
+
+  return (
+    <>
+      <PageHeading eyebrow={t.eyebrow} title={t.title} description={t.description} />
+      <div className={simulation ? 'assistant-with-scenario' : undefined}>
+        {chatPanel}
+        {simulation && (
+          <SimulationPreview
+            key={simulation.id}
+            scenario={simulation.scenario}
+            language={language}
+            onDismiss={() => setSimulation(null)}
+          />
+        )}
+      </div>
+    </>
+  );
 }

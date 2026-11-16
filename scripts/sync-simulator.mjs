@@ -1,20 +1,17 @@
-import { cp, rm } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { copyFile, cp, readdir, unlink } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const source = resolve('GD-con-Simulacion/frontend/dist');
+const source = resolve('cardiac-simulator/dist');
 const target = resolve('public/cardiac-simulator');
+const assets = resolve(target, 'assets');
+const nextAssets = new Set(await readdir(resolve(source, 'assets')));
 
-if (!existsSync(source)) {
-  console.error('❌ Error: Primero compila el frontend de GD-con-Simulacion.');
-  process.exit(1);
+// Keep the existing Duke Heart 4D dataset and logo in public/.
+await cp(resolve(source, 'assets'), assets, { recursive: true });
+await copyFile(resolve(source, 'index.html'), resolve(target, 'index.html'));
+for (const entry of await readdir(assets, { withFileTypes: true })) {
+  if (entry.isFile() && !nextAssets.has(entry.name)) {
+    await unlink(resolve(assets, entry.name));
+  }
 }
-
-try {
-  await rm(target, { recursive: true, force: true });
-  await cp(source, target, { recursive: true });
-  console.log('✅ Simulador cardíaco sincronizado con éxito en public/cardiac-simulator/');
-} catch (error) {
-  console.error('Error al sincronizar:', error.message);
-  process.exit(1);
-}
+console.log('Simulador cardíaco actualizado en public/cardiac-simulator.');

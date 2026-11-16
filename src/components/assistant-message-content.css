@@ -1,0 +1,74 @@
+.assistant-action-plan {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.assistant-action-plan strong {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+}
+
+.assistant-action-plan .assistant-plan-summary-title {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text);
+}
+
+.assistant-plan-frame {
+  overflow: hidden;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.assistant-plan-frame table {
+  width: 100%;
+  table-layout: fixed;
+  white-space: normal;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.assistant-plan-frame caption {
+  padding: 7px 8px;
+  text-align: left;
+  font-weight: 650;
+  color: var(--text);
+  background: rgba(84, 215, 238, .08);
+}
+
+.assistant-plan-frame th,
+.assistant-plan-frame td {
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+  font: inherit;
+  letter-spacing: normal;
+}
+
+.assistant-plan-frame thead th {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.assistant-plan-frame th:first-child {
+  width: 44px;
+  text-align: center;
+}
+
+.assistant-plan-frame tbody th span {
+  display: inline-grid;
+  width: 1.55em;
+  height: 1.55em;
+  place-items: center;
+  border-radius: 50%;
+  color: #92e3ef;
+  background: rgba(84, 215, 238, .1);
+  font-size: 10px;
+  font-weight: 650;
+}
